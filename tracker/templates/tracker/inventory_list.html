@@ -1,0 +1,420 @@
+{% extends 'tracker/base.html' %}
+{% load static humanize custom_filters %}
+{% block title %}Inventory Management{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="page-title">
+    <div class="row">
+      <div class="col-6">
+        <h4>Inventory Management</h4>
+        <p class="text-muted mb-0">Manage your inventory items, track stock levels, and monitor product details.</p>
+      </div>
+      <div class="col-6">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'tracker:dashboard' %}">Home</a></li>
+          <li class="breadcrumb-item active">Inventory</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container-fluid">
+  <div class="card mb-3">
+    <div class="card-body">
+      <form class="row g-3" method="get" action="">
+        <div class="col-md-4">
+          <label for="search" class="form-label">Search</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="fa fa-search"></i></span>
+            <input type="text" name="q" id="search" value="{{ q }}" class="form-control" placeholder="Search by name, SKU, barcode or brand">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <label for="brand" class="form-label">Filter by Brand</label>
+          <select name="brand" id="brand" class="form-select">
+            <option value="">All Brands</option>
+            {% for brand in brands %}
+              <option value="{{ brand.id }}" {% if brand.id|stringformat:'s' == selected_brand %}selected{% endif %}>
+                {{ brand.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-5 d-flex align-items-end">
+          <div class="btn-group w-100" role="group">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa fa-search me-1"></i> Search
+            </button>
+            <a href="?" class="btn btn-outline-secondary">
+              <i class="fa fa-refresh me-1"></i> Reset
+            </a>
+            <a class="btn btn-success" href="{% url 'tracker:inventory_create' %}">
+              <i class="fa fa-plus me-1"></i> Add New Item
+            </a>
+          </div>
+        </div>
+      </form>
+      
+      {% if q or selected_brand %}
+      <div class="mt-3">
+        <span class="badge bg-light text-dark me-2">
+          {{ total_items|intcomma }} item{{ total_items|pluralize }} found
+          {% if q %}
+            matching '{{ q }}'
+          {% endif %}
+          {% if selected_b %}
+            in {{ selected_b.name }}
+          {% endif %}
+        </span>
+        <a href="?" class="small text-muted">Clear all filters</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+      <h5 class="mb-0">Inventory Items</h5>
+      <div class="d-flex align-items-center">
+        <span class="badge bg-light text-dark me-2">
+          Showing {{ start_index }}-{{ end_index }} of {{ total_items|intcomma }}
+        </span>
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fa fa-download me-1"></i> Export
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
+            <li><a class="dropdown-item" href="#"><i class="fa fa-file-excel-o me-2"></i>Excel</a></li>
+            <li><a class="dropdown-item" href="#"><i class="fa fa-file-pdf-o me-2"></i>PDF</a></li>
+            <li><a class="dropdown-item" href="#"><i class="fa fa-print me-2"></i>Print</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0" id="inventoryTable">
+          <thead class="table-light">
+            <tr>
+              <th>Item Details</th>
+              <th>Brand</th>
+              <th class="text-center">SKU / Barcode</th>
+              <th class="text-end">Stock Level</th>
+              <th class="text-end">Pricing</th>
+              <th class="text-center">Status</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for it in items %}
+              <tr class="{% if it.quantity <= it.reorder_level %}table-warning{% elif not it.is_active %}table-light{% endif %}">
+                <td>
+                  <div class="d-flex align-items-start">
+                    <div class="flex-shrink-0 me-3">
+                      <div class="bg-light rounded p-2 text-center" style="width: 50px; height: 50px;">
+                        <i class="fa fa-cube fa-2x text-muted"></i>
+                      </div>
+                    </div>
+                    <div class="flex-grow-1">
+                      <h6 class="mb-0">
+                        <a href="{% url 'tracker:inventory_edit' it.id %}" class="text-dark">{{ it.name }}</a>
+                        {% if it.quantity <= it.reorder_level %}
+                          <span class="badge bg-warning text-dark ms-2">Low Stock</span>
+                        {% endif %}
+                      </h6>
+                      {% if it.description %}
+                        <p class="small text-muted mb-0">{{ it.description|truncatechars:60 }}</p>
+                      {% endif %}
+                      <div class="small text-muted mt-1">
+                        <i class="fa fa-calendar me-1"></i> Added {{ it.created_at|timesince }} ago
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  {% if it.brand %}
+                    <span class="badge bg-light text-dark">
+                      <i class="fa fa-tag me-1"></i> {{ it.brand.name }}
+                    </span>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  {% if it.sku %}
+                    <div class="badge bg-light text-dark mb-1">{{ it.sku }}</div>
+                  {% endif %}
+                  {% if it.barcode %}
+                    <div class="small text-muted">
+                      <i class="fa fa-barcode me-1"></i> {{ it.barcode }}
+                    </div>
+                  {% endif %}
+                  {% if not it.sku and not it.barcode %}
+                    <span class="text-muted small">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  <div class="d-flex flex-column">
+                    <div class="mb-1">
+                      <span class="fw-bold">{{ it.quantity|intcomma }}</span>
+                      <span class="text-muted small">in stock</span>
+                    </div>
+                    {% if it.reorder_level > 0 %}
+                      <div class="progress" style="height: 5px;">
+                        {% widthratio it.quantity it.reorder_level 100 as percent %}
+                        {% with percent=percent|floatformat:0|default:0|add:0 %}
+                          <div class="progress-bar {% if percent < 30 %}bg-danger{% elif percent < 60 %}bg-warning{% else %}bg-success{% endif %}" 
+                               role="progressbar" 
+                               style="width: {{ percent }}%" 
+                               aria-valuenow="{{ percent }}" 
+                               aria-valuemin="0" 
+                               aria-valuemax="100">
+                          </div>
+                        {% endwith %}
+                      </div>
+                      <small class="text-muted">
+                        Reorder at {{ it.reorder_level }}
+                      </small>
+                    {% endif %}
+                  </div>
+                </td>
+                <td class="text-end">
+                  <div class="d-flex flex-column">
+                    <div class="fw-bold text-nowrap">${{ it.price|floatformat:2 }}</div>
+                    {% if it.cost_price %}
+                      <div class="small text-muted">
+                        <span class="d-inline-block me-1">Cost:</span>
+                        <span class="text-nowrap">${{ it.cost_price|floatformat:2 }}</span>
+                        {% if it.price > 0 and it.cost_price > 0 %}
+                          <span class="badge bg-light text-dark ms-1">
+                            {{ it|margin_percentage|floatformat:0 }}%
+                          </span>
+                        {% endif %}
+                      </div>
+                    {% endif %}
+                  </div>
+                </td>
+                <td class="text-center">
+                  {% if it.is_active %}
+                    <span class="badge bg-success bg-opacity-10 text-success">
+                      <i class="fa fa-check-circle me-1"></i> Active
+                    </span>
+                  {% else %}
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary">
+                      <i class="fa fa-times-circle me-1"></i> Inactive
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  <div class="dropdown">
+                    <button class="btn btn-sm btn-light dropdown-toggle" type="button" id="dropdownMenuButton{{ it.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="fa fa-cog"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton{{ it.id }}">
+                      <li>
+                        <a class="dropdown-item" href="{% url 'tracker:inventory_edit' it.id %}">
+                          <i class="fa fa-edit me-2"></i> Edit
+                        </a>
+                      </li>
+                      <li>
+                        <a class="dropdown-item text-danger" href="{% url 'tracker:inventory_delete' it.id %}">
+                          <i class="fa fa-trash me-2"></i> Delete
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="7" class="text-center p-4">No items found. Try adjusting your search criteria.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% if items.paginator.num_pages > 1 %}
+    <div class="card-footer">
+      <nav aria-label="Inventory pagination">
+        <ul class="pagination justify-content-center mb-0">
+          {% if items.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page=1&q={{ q|urlencode }}&brand={{ selected_brand|urlencode }}" aria-label="First">
+                <span aria-hidden="true">&laquo;&laquo;</span>
+              </a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{ items.previous_page_number }}&q={{ q|urlencode }}&brand={{ selected_brand|urlencode }}" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">&laquo;&laquo;</span>
+            </li>
+            <li class="page-item disabled">
+              <span class="page-link">&laquo;</span>
+            </li>
+          {% endif %}
+          
+          {% for num in items.paginator.page_range %}
+            {% if items.number == num %}
+              <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > items.number|add:'-3' and num < items.number|add:'3' %}
+              <li class="page-item"><a class="page-link" href="?page={{ num }}&q={{ q|urlencode }}&brand={{ selected_brand|urlencode }}">{{ num }}</a></li>
+            {% endif %}
+          {% endfor %}
+          
+          {% if items.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ items.next_page_number }}&q={{ q|urlencode }}&brand={{ selected_brand|urlencode }}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{ items.paginator.num_pages }}&q={{ q|urlencode }}&brand={{ selected_brand|urlencode }}" aria-label="Last">
+                <span aria-hidden="true">&raquo;&raquo;</span>
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">&raquo;</span>
+            </li>
+            <li class="page-item disabled">
+              <span class="page-link">&raquo;&raquo;</span>
+            </li>
+          {% endif %}
+        </ul>
+        <div class="text-center text-muted small mt-2">
+          Showing {{ items.start_index }} to {{ items.end_index }} of {{ items.paginator.count }} items
+        </div>
+      </nav>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'assets/js/datatable/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'assets/js/datatable/datatables/datatable.custom.js' %}"></script>
+<script>
+$(function() {
+  // Initialize DataTable with responsive and export options
+  const table = $('#inventoryTable').DataTable({
+    paging: false, // Disable DataTables pagination (using server-side)
+    searching: false, // Disable DataTables search (using server-side)
+    info: false, // Disable DataTables info (using our custom counter)
+    order: [], // Disable initial sort
+    responsive: true,
+    dom: 'rti', // Only show table and info elements
+    columnDefs: [
+      { orderable: false, targets: [5, 6] }, // Disable sorting on status and actions columns
+      { className: 'align-middle', targets: '_all' } // Center align all cells
+    ],
+    language: {
+      emptyTable: 'No items found. Try adjusting your search criteria.',
+      zeroRecords: 'No matching items found.'
+    },
+    initComplete: function() {
+      // Add any initialization code here if needed
+    }
+  });
+
+  // Handle row click (excluding action buttons and dropdowns)
+  $('#inventoryTable tbody').on('click', 'tr', function(e) {
+    // Don't navigate if clicking on a button, link, or dropdown
+    if ($(e.target).closest('button, a, .dropdown, .dropdown-menu').length) {
+      return;
+    }
+    
+    // Navigate to edit page
+    const editUrl = $(this).find('a[href*="inventory_edit"]').attr('href');
+    if (editUrl) {
+      window.location.href = editUrl;
+    }
+  });
+
+  // Handle export buttons
+  $('.export-excel').on('click', function() {
+    // Implement Excel export
+    alert('Export to Excel functionality will be implemented here');
+  });
+
+  $('.export-pdf').on('click', function() {
+    // Implement PDF export
+    alert('Export to PDF functionality will be implemented here');
+  });
+
+  $('.print-table').on('click', function() {
+    // Implement print functionality
+    window.print();
+  });
+
+  // Initialize tooltips
+  $('[data-bs-toggle="tooltip"]').tooltip();
+
+  // Handle brand filter change
+  $('#brand').on('change', function() {
+    $(this).closest('form').submit();
+  });
+
+  // Handle keyboard navigation
+  $(document).on('keydown', function(e) {
+    // Focus search field on Ctrl+F
+    if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+      e.preventDefault();
+      $('#search').focus().select();
+    }
+  });
+
+  // Show loading indicator during AJAX operations
+  $(document).ajaxStart(function() {
+    $('#loading-indicator').show();
+  }).ajaxStop(function() {
+    $('#loading-indicator').hide();
+  });
+
+  // Initialize clipboard for copying SKU/barcode
+  new ClipboardJS('.copy-btn', {
+    text: function(trigger) {
+      return $(trigger).data('clipboard-text');
+    }
+  });
+
+  // Show success message when copying
+  $('.copy-btn').on('click', function() {
+    const originalText = $(this).html();
+    $(this).html('<i class="fa fa-check"></i> Copied!');
+    setTimeout(() => {
+      $(this).html(originalText);
+    }, 2000);
+  });
+
+  // Handle bulk actions
+  $('.bulk-select-all').on('change', function() {
+    $('.bulk-select-item').prop('checked', $(this).prop('checked'));
+  });
+
+  // Initialize popovers
+  $('[data-bs-toggle="popover"]').popover({
+    trigger: 'hover',
+    html: true,
+    container: 'body'
+  });
+});
+</script>
+
+<!-- Loading indicator (hidden by default) -->
+<div id="loading-indicator" class="position-fixed top-0 end-0 p-3" style="z-index: 1090; display: none;">
+  <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <div class="spinner-border spinner-border-sm me-2" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <strong class="me-auto">Loading</strong>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body">
+      Please wait while we process your request...
+    </div>
+  </div>
+</div>
+{% endblock %}

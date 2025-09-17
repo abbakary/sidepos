@@ -1,0 +1,88 @@
+{% if service_type == 'tire_sales' %}
+  <div class="row">
+    <div class="col-md-6">
+      <p class="mb-2"><strong>Service Type:</strong> Tire Sales</p>
+      <p class="mb-2"><strong>Brand:</strong> {{ form.tire_brand.value|title }}</p>
+      <p class="mb-2"><strong>Type:</strong> {{ form.tire_type.value|title }}</p>
+      <p class="mb-2"><strong>Size:</strong> {{ form.tire_width.value }}/{{ form.tire_aspect_ratio.value }} R{{ form.rim_size.value }}</p>
+    </div>
+    <div class="col-md-6">
+      <p class="mb-2"><strong>Quantity:</strong> {{ form.quantity.value }}</p>
+      <p class="mb-2"><strong>Condition:</strong> {{ form.condition.value|title }}</p>
+      {% if form.special_requests.value %}
+        <p class="mb-2"><strong>Special Requests:</strong> {{ form.special_requests.value }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+{% elif service_type == 'car_service' %}
+  <div class="row">
+    <div class="col-md-6">
+      <p class="mb-2"><strong>Service Type:</strong> Car Service</p>
+      <p class="mb-2"><strong>Vehicle:</strong> {{ form.vehicle_make.value|title }} {{ form.vehicle_model.value|title }} ({{ form.vehicle_year.value }})</p>
+      <p class="mb-2"><strong>Plate:</strong> {{ form.plate_number.value|upper }}</p>
+      {% if form.vin.value %}
+        <p class="mb-2"><strong>VIN:</strong> {{ form.vin.value|upper }}</p>
+      {% endif %}
+    </div>
+    <div class="col-md-6">
+      <p class="mb-2"><strong>Priority:</strong> {{ form.priority.value|title }}</p>
+      {% if form.estimated_completion.value %}
+        <p class="mb-2"><strong>Estimated Completion:</strong> {{ form.estimated_completion.value }}</p>
+      {% endif %}
+    </div>
+  </div>
+  
+  {% if form.services.value %}
+    <div class="mt-3">
+      <h6>Selected Services:</h6>
+      <ul class="list-group">
+        {% for service in selected_services %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ service.name }}
+            <span class="badge bg-primary rounded-pill">{{ service.price }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  {% if form.problem_description.value %}
+    <div class="mt-3">
+      <h6>Problem Description:</h6>
+      <div class="p-3 bg-light rounded">
+        {{ form.problem_description.value|linebreaksbr }}
+      </div>
+    </div>
+  {% endif %}
+
+{% elif service_type == 'inquiry' %}
+  <div class="row">
+    <div class="col-md-6">
+      <p class="mb-2"><strong>Inquiry Type:</strong> {{ form.inquiry_type.value|title }}</p>
+      <p class="mb-2"><strong>Subject:</strong> {{ form.subject.value }}</p>
+    </div>
+    <div class="col-md-6">
+      <p class="mb-2"><strong>Contact Method:</strong> {{ form.contact_method.value|title }}</p>
+      {% if form.preferred_date.value %}
+        <p class="mb-2"><strong>Preferred Date:</strong> {{ form.preferred_date.value }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if form.description.value %}
+    <div class="mt-3">
+      <h6>Description:</h6>
+      <div class="p-3 bg-light rounded">
+        {{ form.description.value|linebreaksbr }}
+      </div>
+    </div>
+  {% endif %}
+
+  {% if form.follow_up_required.value %}
+    <div class="alert alert-info mt-3 mb-0">
+      <i class="fa fa-flag me-2"></i>
+      Customer has requested a follow-up
+    </div>
+  {% endif %}
+{% endif %}

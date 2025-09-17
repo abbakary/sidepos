@@ -1,0 +1,337 @@
+{% extends 'tracker/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h4>{{ title }}</h4>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'tracker:orders_list' %}">Orders</a>
+                        </li>
+                        {% if order %}
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'tracker:order_detail' order.id %}">Order #{{ order.order_number }}</a>
+                        </li>
+                        {% endif %}
+                        <li class="breadcrumb-item active">
+                            {{ order|yesno:'Edit,New' }} Order
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Order Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            
+                            {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            
+                            <div class="row g-3">
+                                <!-- Left Column -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label" for="id_type">Order Type</label>
+                                        {{ form.type }}
+                                        <div class="invalid-feedback">
+                                            {{ form.type.errors|join:" " }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label" for="id_priority">Priority</label>
+                                        {{ form.priority }}
+                                        <div class="invalid-feedback">
+                                            {{ form.priority.errors|join:" " }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label" for="id_vehicle">Vehicle</label>
+                                        {{ form.vehicle }}
+                                        <div class="form-text">
+                                            <a href="#" data-bs-toggle="modal" data-bs-target="#addVehicleModal">
+                                                <i class="fa fa-plus"></i> Add new vehicle
+                                            </a>
+                                        </div>
+                                        <div class="invalid-feedback">
+                                            {{ form.vehicle.errors|join:" " }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label" for="id_description">Description</label>
+                                        {{ form.description }}
+                                        <div class="invalid-feedback">
+                                            {{ form.description.errors|join:" " }}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Right Column -->
+                                <div class="col-md-6">
+                                    <div id="salesFields" class="mb-3" style="display: none;">
+                                        <label class="form-label" for="id_item_name">Item Name</label>
+                                        {{ form.item_name }}
+                                        <div class="invalid-feedback">
+                                            {{ form.item_name.errors|join:" " }}
+                                        </div>
+                                        
+                                        <div class="row mt-2">
+                                            <div class="col-md-6">
+                                                <label class="form-label" for="id_brand">Brand</label>
+                                                {{ form.brand }}
+                                                <div class="invalid-feedback">
+                                                    {{ form.brand.errors|join:" " }}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label" for="id_quantity">Quantity</label>
+                                                {{ form.quantity }}
+                                                <div class="invalid-feedback">
+                                                    {{ form.quantity.errors|join:" " }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-2" id="inventoryStatus">
+                                            <!-- Inventory status will be shown here -->
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label" for="id_estimated_duration">Estimated Duration (minutes)</label>
+                                        {{ form.estimated_duration }}
+                                        <div class="invalid-feedback">
+                                            {{ form.estimated_duration.errors|join:" " }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label" for="id_notes">Notes</label>
+                                        {{ form.notes }}
+                                        <div class="invalid-feedback">
+                                            {{ form.notes.errors|join:" " }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-4">
+                                <div class="col-12 text-end">
+                                    <a href="{% if order %}{% url 'tracker:order_detail' order.id %}{% else %}{% url 'tracker:orders_list' %}{% endif %}" 
+                                       class="btn btn-light me-2">
+                                        <i class="fa fa-times me-1"></i> Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fa fa-save me-1"></i> Save Order
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Vehicle Modal -->
+<div class="modal fade" id="addVehicleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Vehicle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addVehicleForm">
+                    <div class="mb-3">
+                        <label class="form-label">License Plate</label>
+                        <input type="text" class="form-control" name="plate_number" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Make</label>
+                                <input type="text" class="form-control" name="make">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Model</label>
+                                <input type="text" class="form-control" name="model">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Year</label>
+                        <input type="number" class="form-control" name="year" min="1900" max="{% now 'Y' %}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">VIN (Optional)</label>
+                        <input type="text" class="form-control" name="vin" maxlength="17">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveVehicleBtn">Save Vehicle</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Enable form validation
+(function () {
+    'use strict'
+    
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    var forms = document.querySelectorAll('.needs-validation')
+    
+    // Loop over them and prevent submission
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            
+            form.classList.add('was-validated')
+        }, false)
+    })
+})()
+
+// Show/hide sales fields based on order type
+document.addEventListener('DOMContentLoaded', function() {
+    const orderType = document.getElementById('id_type');
+    const salesFields = document.getElementById('salesFields');
+    
+    function toggleSalesFields() {
+        if (orderType.value === 'sales') {
+            salesFields.style.display = 'block';
+        } else {
+            salesFields.style.display = 'none';
+        }
+    }
+    
+    // Initial toggle
+    toggleSalesFields();
+    
+    // Toggle on change
+    orderType.addEventListener('change', toggleSalesFields);
+    
+    // Handle vehicle form submission
+    const addVehicleForm = document.getElementById('addVehicleForm');
+    const saveVehicleBtn = document.getElementById('saveVehicleBtn');
+    
+    if (saveVehicleBtn) {
+        saveVehicleBtn.addEventListener('click', function() {
+            const formData = new FormData(addVehicleForm);
+            const customerId = '{{ order.customer.id }}';
+            
+            fetch(`/api/customers/${customerId}/vehicles/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFTTOKEN': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Add new vehicle to the select
+                    const select = document.getElementById('id_vehicle');
+                    const option = new Option(data.vehicle.plate_number, data.vehicle.id);
+                    select.add(option);
+                    select.value = data.vehicle.id;
+                    
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addVehicleModal'));
+                    modal.hide();
+                    
+                    // Show success message
+                    alert('Vehicle added successfully!');
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to add vehicle'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while saving the vehicle');
+            });
+        });
+    }
+    
+    // Check inventory status when item name or brand changes
+    const itemNameInput = document.getElementById('id_item_name');
+    const brandInput = document.getElementById('id_brand');
+    const inventoryStatus = document.getElementById('inventoryStatus');
+    
+    function checkInventory() {
+        const itemName = itemNameInput.value.trim();
+        const brand = brandInput.value.trim();
+        
+        if (!itemName) {
+            inventoryStatus.innerHTML = '';
+            return;
+        }
+        
+        // Make API call to check inventory
+        fetch(`/api/inventory/check/?item=${encodeURIComponent(itemName)}&brand=${encodeURIComponent(brand)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.available > 0) {
+                    inventoryStatus.innerHTML = `
+                        <div class="alert alert-success p-2 mb-0">
+                            <i class="fa fa-check-circle me-1"></i>
+                            ${data.available} in stock
+                        </div>
+                    `;
+                } else {
+                    inventoryStatus.innerHTML = `
+                        <div class="alert alert-warning p-2 mb-0">
+                            <i class="fa fa-exclamation-triangle me-1"></i>
+                            Out of stock
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error checking inventory:', error);
+                inventoryStatus.innerHTML = '';
+            });
+    }
+    
+    if (itemNameInput && brandInput) {
+        itemNameInput.addEventListener('input', checkInventory);
+        brandInput.addEventListener('input', checkInventory);
+    }
+});
+</script>
+{% endblock %}

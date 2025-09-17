@@ -1,0 +1,126 @@
+{% extends 'tracker/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - {{ customer.full_name }}{% endblock %}
+
+{% block content %}
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h4>{{ title }}</h4>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'tracker:customers_list' %}">Customers</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'tracker:customer_detail' customer.id %}">{{ customer.full_name }}</a>
+                        </li>
+                        <li class="breadcrumb-item active">{{ title }}</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>{{ title }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="id_plate_number">License Plate</label>
+                                    {{ form.plate_number }}
+                                    <div class="invalid-feedback">
+                                        {{ form.plate_number.errors|join:" " }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="id_make">Make</label>
+                                    {{ form.make }}
+                                    <div class="invalid-feedback">
+                                        {{ form.make.errors|join:" " }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="id_model">Model</label>
+                                    {{ form.model }}
+                                    <div class="invalid-feedback">
+                                        {{ form.model.errors|join:" " }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="id_year">Year</label>
+                                    {{ form.year }}
+                                    <div class="invalid-feedback">
+                                        {{ form.year.errors|join:" " }}
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" for="id_vin">VIN (Vehicle Identification Number)</label>
+                                    {{ form.vin }}
+                                    <div class="form-text">17-character VIN (optional)</div>
+                                    <div class="invalid-feedback">
+                                        {{ form.vin.errors|join:" " }}
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" for="id_notes">Notes</label>
+                                    {{ form.notes }}
+                                    <div class="invalid-feedback">
+                                        {{ form.notes.errors|join:" " }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-4">
+                                <div class="col-12 text-end">
+                                    <a href="{% url 'tracker:customer_detail' customer.id %}" class="btn btn-light me-2">
+                                        <i class="fa fa-times me-1"></i> Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fa fa-save me-1"></i> Save Vehicle
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Enable form validation
+(function () {
+    'use strict'
+    
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    var forms = document.querySelectorAll('.needs-validation')
+    
+    // Loop over them and prevent submission
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            
+            form.classList.add('was-validated')
+        }, false)
+    })
+})()
+</script>
+{% endblock %}

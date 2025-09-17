@@ -1,0 +1,597 @@
+{% extends 'tracker/base.html' %}
+{% load static %}
+{% load humanize %}  <!-- Add this line -->
+{% load custom_filters %}
+
+{% block title %}Advanced Analytics Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+    .chart-container {
+        position: relative;
+        min-height: 300px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-title">
+        <div class="row align-items-center">
+            <div class="col-6">
+                <h4><i class="fas fa-chart-line text-primary me-2"></i>Advanced Analytics</h4>
+                <p class="text-muted mb-0">Comprehensive insights and performance metrics</p>
+    <!-- Advanced Filter Panel -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Advanced Filters</h5>
+                    <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="true">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+                <div class="collapse show" id="filterCollapse">
+                    <div class="card-body">
+                        <form method="get" class="row g-3">
+                            <!-- Report Type -->
+                            <div class="col-md-3">
+                                <label class="form-label fw-medium">Report Type</label>
+                                <select name="type" class="form-select">
+                                    <option value="overview" {% if report_type == 'overview' %}selected{% endif %}>Overview Dashboard</option>
+                                    <option value="customers" {% if report_type == 'customers' %}selected{% endif %}>Customer Analytics</option>
+                                    <option value="sales" {% if report_type == 'sales' %}selected{% endif %}>Sales Performance</option>
+                                    <option value="inventory" {% if report_type == 'inventory' %}selected{% endif %}>Inventory Analysis</option>
+                                    <option value="financial" {% if report_type == 'financial' %}selected{% endif %}>Financial Metrics</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Date Range -->
+                            <div class="col-md-2">
+                                <label class="form-label fw-medium">Date Range</label>
+                                <select name="period" id="periodSelect" class="form-select">
+                                    <option value="today" {% if period == 'today' %}selected{% endif %}>Today</option>
+                                    <option value="yesterday" {% if period == 'yesterday' %}selected{% endif %}>Yesterday</option>
+                                    <option value="this_week" {% if period == 'this_week' %}selected{% endif %}>This Week</option>
+                                    <option value="last_week" {% if period == 'last_week' %}selected{% endif %}>Last Week</option>
+                                    <option value="this_month" {% if period == 'this_month' %}selected{% endif %}>This Month</option>
+                                    <option value="last_month" {% if period == 'last_month' %}selected{% endif %}>Last Month</option>
+                                    <option value="this_quarter" {% if period == 'this_quarter' %}selected{% endif %}>This Quarter</option>
+                                    <option value="last_quarter" {% if period == 'last_quarter' %}selected{% endif %}>Last Quarter</option>
+                                    <option value="this_year" {% if period == 'this_year' %}selected{% endif %}>This Year</option>
+                                    <option value="last_year" {% if period == 'last_year' %}selected{% endif %}>Last Year</option>
+                                    <option value="custom" {% if period == 'custom' %}selected{% endif %}>Custom Range</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Custom Date Range (initially hidden) -->
+                            <div class="col-md-2" id="customDateRange" style="display: none;">
+                                <label class="form-label fw-medium">From</label>
+                                <input type="date" class="form-control" name="date_from" value="{{ date_from|date:'Y-m-d' }}">
+                            </div>
+                            <div class="col-md-2" id="customDateEnd" style="display: none;">
+                                <label class="form-label fw-medium">To</label>
+                                <input type="date" class="form-control" name="date_to" value="{{ date_to|date:'Y-m-d' }}">
+                            </div>
+                            
+                            <!-- Status Filter -->
+                            <div class="col-md-3">
+                                <label class="form-label fw-medium">Status</label>
+                                <select name="status" class="form-select">
+                                    <option value="all">All Statuses</option>
+                                    <option value="completed" {% if status == 'completed' %}selected{% endif %}>Completed</option>
+                                    <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending</option>
+                                    <option value="in_progress" {% if status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                    <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary me-2 w-100">
+                                    <i class="fas fa-sync-alt me-1"></i> Update
+                                </button>
+                            </div>
+                            
+                            <!-- Export Options -->
+                            <div class="col-md-2 d-flex align-items-end">
+                                <div class="dropdown w-100">
+                                    <button class="btn btn-outline-secondary w-100 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-download me-1"></i> Export
+                                    </button>
+                                    <ul class="dropdown-menu w-100">
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-file-excel me-2"></i>Export to Excel</a></li>
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf me-2"></i>Export to PDF</a></li>
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-file-csv me-2"></i>Export to CSV</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-print me-2"></i>Print Report</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="row mb-4">
+        <!-- Total Revenue Card -->
+        <div class="col-xxl-3 col-md-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted text-uppercase small">Total Revenue</span>
+                            <h2 class="mt-2 mb-1">${{ stats.total_revenue|default:0|floatformat:2 }}</h2>
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-soft-success text-success p-1 me-2">
+                                    <i class="fas fa-arrow-up me-1"></i> {{ stats.revenue_change|default:0|floatformat:1 }}%
+                                </span>
+                                <span class="text-muted small">vs previous period</span>
+                            </div>
+                        </div>
+                        <div class="avatar-lg rounded-circle bg-soft-primary d-flex align-items-center justify-content-center" style="font-size: 1.75rem;">
+                            <i class="fas fa-dollar-sign text-primary"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="progress progress-sm">
+                            <div class="progress-bar bg-primary" 
+                                 role="progressbar" 
+                                 style="width: {{ stats.revenue_progress|default:0 }}%"
+                                 data-width="{{ stats.revenue_progress|default:0 }}"
+                                 data-valuenow="{{ stats.revenue_progress|default:0 }}"
+                                 data-valuemin="0"
+                                 data-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <span class="text-muted small">Target: ${{ stats.revenue_target|default:0|intcomma }}</span>
+                            <span class="text-muted small">{{ stats.revenue_progress|default:0 }}%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Orders Card -->
+        <div class="col-xxl-3 col-md-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted text-uppercase small">Total Orders</span>
+                            <h2 class="mt-2 mb-1">{{ stats.total_orders|default:0|intcomma }}</h2>
+                            <div class="d-flex align-items-center">
+                                {% with change=stats.orders_change|default:0 %}
+                                <span class="badge bg-soft-{% if change >= 0 %}success{% else %}danger{% endif %} text-{% if change >= 0 %}success{% else %}danger{% endif %} p-1 me-2">
+                                    <i class="fas fa-arrow-{% if change >= 0 %}up{% else %}down{% endif %} me-1"></i> {{ change|floatformat:1|abs }}%
+                                </span>
+                                <span class="text-muted small">vs previous period</span>
+                                {% endwith %}
+                            </div>
+                        </div>
+                        <div class="avatar-lg rounded-circle bg-soft-info d-flex align-items-center justify-content-center" style="font-size: 1.75rem;">
+                            <i class="fas fa-shopping-cart text-info"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="progress progress-sm">
+                            <div class="progress-bar bg-info" 
+                                 role="progressbar"
+                                 style="width: {{ stats.orders_progress|default:0 }}%"
+                                 data-width="{{ stats.orders_progress|default:0 }}"
+                                 data-valuenow="{{ stats.orders_progress|default:0 }}"
+                                 data-valuemin="0"
+                                 data-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <span class="text-muted small">Avg. Order: ${{ stats.avg_order_value|default:0|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Customers Card -->
+        <div class="col-xxl-3 col-md-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted text-uppercase small">New Customers</span>
+                            <h2 class="mt-2 mb-1">{{ stats.new_customers|default:0|intcomma }}</h2>
+                            <div class="d-flex align-items-center">
+                                {% with change=stats.customers_change|default:0 %}
+                                <span class="badge bg-soft-{% if change >= 0 %}success{% else %}danger{% endif %} text-{% if change >= 0 %}success{% else %}danger{% endif %} p-1 me-2">
+                                    <i class="fas fa-arrow-{% if change >= 0 %}up{% else %}down{% endif %} me-1"></i> {{ change|floatformat:1|abs }}%
+                                </span>
+                                <span class="text-muted small">vs previous period</span>
+                                {% endwith %}
+                            </div>
+                        </div>
+                        <div class="avatar-lg rounded-circle bg-soft-warning d-flex align-items-center justify-content-center">
+                            <i class="fas fa-users text-warning" style="font-size: 1.75rem;"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="progress progress-sm">
+                            <div class="progress-bar bg-warning" role="progressbar" 
+                                 style="width: {{ stats.customers_progress|default:0 }}%" 
+                                 aria-valuenow="{{ stats.customers_progress|default:0 }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <span class="text-muted small">Total: {{ stats.total_customers|default:0|intcomma }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Average Order Value Card -->
+        <div class="col-xxl-3 col-md-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted text-uppercase small">Avg. Order Value</span>
+                            <h2 class="mt-2 mb-1">${{ stats.avg_order_value|default:0|floatformat:2 }}</h2>
+                            <div class="d-flex align-items-center">
+                                {% with change=stats.aov_change|default:0 %}
+                                <span class="badge bg-soft-{% if change >= 0 %}success{% else %}danger{% endif %} text-{% if change >= 0 %}success{% else %}danger{% endif %} p-1 me-2">
+                                    <i class="fas fa-arrow-{% if change >= 0 %}up{% else %}down{% endif %} me-1"></i> {{ change|floatformat:1|abs }}%
+                                </span>
+                                <span class="text-muted small">vs previous period</span>
+                                {% endwith %}
+                            </div>
+                        </div>
+                        <div class="avatar-lg rounded-circle bg-soft-success d-flex align-items-center justify-content-center">
+                            <i class="fas fa-tag text-success" style="font-size: 1.75rem;"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between mt-1">
+                            <span class="text-muted small">Highest: ${{ stats.highest_order|default:0|floatformat:2 }}</span>
+                            <span class="text-muted small">Lowest: ${{ stats.lowest_order|default:0|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row">
+        <!-- Main Chart -->
+        <div class="col-xxl-8 mb-4">
+            <div class="card h-100">
+                <div class="card-body p-0">
+                    <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                        <h5 class="mb-0">Performance Overview</h5>
+                        <div class="d-flex
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-secondary active" data-period="week">Week</button>
+                                <button type="button" class="btn btn-outline-secondary" data-period="month">Month</button>
+                                <button type="button" class="btn btn-outline-secondary" data-period="year">Year</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-0">
+                                    <select class="form-select form-select-sm" id="chartType">
+                                        <option value="line">Line Chart</option>
+                                        <option value="bar">Bar Chart</option>
+                                        <option value="area">Area Chart</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Download">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Refresh">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Fullscreen">
+                                        <i class="fas fa-expand"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="mainChart" style="height: 350px;"></div>
+                        <div class="mt-3 text-center">
+                            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                <label class="btn btn-sm btn-outline-primary active">
+                                    <input type="radio" name="metric" value="revenue" checked> Revenue
+                                </label>
+                                <label class="btn btn-sm btn-outline-primary">
+                                    <input type="radio" name="metric" value="orders"> Orders
+                                </label>
+                                <label class="btn btn-sm btn-outline-primary">
+                                    <input type="radio" name="metric" value="customers"> Customers
+                                </label>
+                                <label class="btn btn-sm btn-outline-primary">
+                                    <input type="radio" name="metric" value="aov"> Avg. Order Value
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Secondary Metrics -->
+        <div class="col-xxl-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">Key Metrics</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="nav nav-tabs nav-justified" id="metricsTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="revenue-tab" data-bs-toggle="tab" data-bs-target="#revenue" type="button" role="tab">
+                                <i class="fas fa-dollar-sign me-1"></i> Revenue
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab">
+                                <i class="fas fa-shopping-cart me-1"></i> Orders
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="customers-tab" data-bs-toggle="tab" data-bs-target="#customers" type="button" role="tab">
+                                <i class="fas fa-users me-1"></i> Customers
+                            </button>
+                        </li>
+                    </ul>
+                    <div class="tab-content p-3" id="metricsTabContent">
+                        <div class="tab-pane fade show active" id="revenue" role="tabpanel">
+                            <div id="revenueChart" style="height: 200px;"></div>
+                            <div class="mt-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">This Month</span>
+                                    <strong>${{ stats.month_revenue|default:0|intcomma }}</strong>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ stats.month_revenue_percent|default:0 }}%" 
+                                         aria-valuenow="{{ stats.month_revenue_percent|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-3">
+                                    <small class="text-muted">vs Last Month</small>
+                                    {% with change=stats.month_revenue_change|default:0 %}
+                                    <span class="text-{% if change >= 0 %}success{% else %}danger{% endif %}">
+                                        {{ change|floatformat:1 }}%
+                                        <i class="fas fa-arrow-{% if change >= 0 %}up{% else %}down{% endif %}"></i>
+                                    </span>
+                                    {% endwith %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="orders" role="tabpanel">
+                            <div id="ordersChart" style="height: 200px;"></div>
+                            <div class="mt-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">This Month</span>
+                                    <strong>{{ stats.month_orders|default:0|intcomma }}</strong>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ stats.month_orders_percent|default:0 }}%" 
+                                         aria-valuenow="{{ stats.month_orders_percent|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-3">
+                                    <small class="text-muted">vs Last Month</small>
+                                    {% with change=stats.month_orders_change|default:0 %}
+                                    <span class="text-{% if change >= 0 %}success{% else %}danger{% endif %}">
+                                        {{ change|floatformat:1 }}%
+                                        <i class="fas fa-arrow-{% if change >= 0 %}up{% else %}down{% endif %}"></i>
+                                    </span>
+                                    {% endwith %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="customers" role="tabpanel">
+                            <div id="customersChart" style="height: 200px;"></div>
+                            <div class="mt-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">New This Month</span>
+                                    <strong>{{ stats.month_customers|default:0|intcomma }}</strong>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: {{ stats.month_customers_percent|default:0 }}%" 
+                                         aria-valuenow="{{ stats.month_customers_percent|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-3">
+                                    <small class="text-muted">vs Last Month</small>
+                                    {% with change=stats.month_customers_change|default:0 %}
+                                    <span class="text-{% if change >= 0 %}success{% else %}danger{% endif %}">
+                                        {{ change|floatformat:1 }}%
+                                        <i class="fas fa-arrow-{% if change >= 0 %}up{% else %}down{% endif %}"></i>
+                                    </span>
+                                    {% endwith %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Data Table -->
+    <div class="col-12 mt-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Detailed Transactions</h5>
+                <div class="d-flex">
+                    <div class="input-group input-group-sm ms-2" style="width: 250px;">
+                        <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                        <input type="text" class="form-control" id="searchInput" placeholder="Search transactions...">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-filter"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><h6 class="dropdown-header">Filter by Status</h6></li>
+                            <li><a class="dropdown-item" href="#"><span class="badge bg-success me-2"></span>Completed</a></li>
+                            <li><a class="dropdown-item" href="#"><span class="badge bg-warning me-2"></span>Pending</a></li>
+                            <li><a class="dropdown-item" href="#"><span class="badge bg-danger me-2"></span>Cancelled</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">Clear Filters</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="transactionsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="selectAll">
+                                    </div>
+                                </th>
+                                <th>Order ID <i class="fas fa-sort ms-1"></i></th>
+                                <th>Date <i class="fas fa-sort ms-1"></i></th>
+                                <th>Customer</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th class="text-end">Amount</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in data_items %}
+                            <tr>
+                                <td class="text-center">
+                                    <div class="form-check">
+                                        <input class="form-check-input row-checkbox" type="checkbox">
+                                    </div>
+                                </td>
+                                <td><a href="#" class="text-primary fw-medium">#{{ item.id|stringformat:"06d" }}</a></td>
+                                <td>{{ item.created_at|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-shrink-0 me-2">
+                                            <img src="{{ item.customer.avatar_url|default:'/static/assets/images/users/avatar-1.jpg' }}" 
+                                                 alt="" class="avatar-xs rounded-circle">
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-0">{{ item.customer.name|default:"Guest" }}</h6>
+                                            <small class="text-muted">{{ item.customer.email|default:"No email" }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-soft-primary">{{ item.type|title }}</span></td>
+                                <td>
+                                    <span class="badge bg-{% if item.status == 'completed' %}success{% elif item.status == 'cancelled' %}danger{% else %}warning{% endif %} p-2">
+                                        <i class="fas fa-{% if item.status == 'completed' %}check-circle{% elif item.status == 'cancelled' %}times-circle{% else %}clock{% endif %} me-1"></i>
+                                        {{ item.status|title }}
+                                    </span>
+                                </td>
+                                <td class="text-end fw-medium">${{ item.total|default:"0.00" }}</td>
+                                <td class="text-center">
+                                    <div class="dropdown">
+                                        <button class="btn btn-link text-muted p-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a class="dropdown-item" href="#"><i class="fas fa-eye me-2"></i>View Details</a></li>
+                                            <li><a class="dropdown-item" href="#"><i class="fas fa-edit me-2"></i>Edit</a></li>
+                                            <li><a class="dropdown-item" href="#"><i class="fas fa-file-invoice me-2"></i>Invoice</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-trash-alt me-2"></i>Delete</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center py-4">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <div class="avatar-lg mb-3">
+                                            <div class="avatar-title bg-soft-primary text-primary rounded-circle">
+                                                <i class="fas fa-inbox fs-1"></i>
+                                            </div>
+                                        </div>
+                                        <h5>No transactions found</h5>
+                                        <p class="text-muted">Try adjusting your search or filter to find what you're looking for.</p>
+                                        <button class="btn btn-primary">
+                                            <i class="fas fa-plus me-1"></i> Add New Transaction
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Table Footer -->
+                <div class="d-flex justify-content-between align-items-center p-3 border-top">
+                    <div class="text-muted">
+                        Showing <span class="fw-semibold">1</span> to <span class="fw-semibold">10</span> of 
+                        <span class="fw-semibold">{{ data_items|length|default:0 }}</span> entries
+                    </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize charts using the data from the view
+  const chartData = JSON.parse('{{ chart_data|escapejs }}');
+  
+  // Initialize order trends chart
+  if (document.getElementById('orderTrendsChart')) {
+    const options = {
+      chart: { type: 'line', height: 300, toolbar: { show: false } },
+      stroke: { curve: 'smooth', width: 3 },
+      series: [{ name: 'Orders', data: chartData.trend.values }],
+      xaxis: { categories: chartData.trend.labels },
+      colors: ['#3b82f6'],
+      tooltip: { theme: 'light' }
+    };
+    new ApexCharts(document.querySelector("#orderTrendsChart"), options).render();
+  }
+
+  // Add more chart initializations as needed
+});
+</script>
+{% endblock %}

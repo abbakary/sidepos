@@ -1,0 +1,169 @@
+{% extends 'tracker/base.html' %}
+{% load static custom_filters tz %}
+
+{% block title %}Order Details{% endblock %}
+
+{% block content %}
+  <div class="container-fluid">
+    <div class="page-title">
+      <div class="row">
+        <div class="col-6"><h4>Order {{ order.order_number }}</h4></div>
+        <div class="col-6">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'tracker:orders_list' %}">Orders</a></li>
+            <li class="breadcrumb-item active">Details</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container-fluid">
+    <div class="row g-3">
+      <div class="col-xl-8">
+        <div class="card"><div class="card-header"><h5 class="mb-0">Order Info</h5></div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6"><div class="f-light">Type</div><div class="f-w-600 text-capitalize">{{ order.type }}</div></div>
+              <div class="col-md-6"><div class="f-light">Status</div><div class="f-w-600 text-capitalize">{{ order.status }}</div></div>
+              <div class="col-md-6"><div class="f-light">Priority</div><div class="f-w-600 text-capitalize">{{ order.priority }}</div></div>
+              <div class="col-md-6">
+                <div class="f-light">Created</div>
+                <div class="f-w-600">
+                  {{ order.created_at|localtime|date:'Y-m-d H:i' }}
+                  <small class="text-muted">({{ timezone }})</small>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="f-light">Updated</div>
+                <div class="f-w-600">
+                  {{ order|order_last_update|localtime|date:'Y-m-d H:i' }}
+                  <small class="text-muted">({{ timezone }})</small>
+                </div>
+              </div>
+              {% if order.started_at %}
+              <div class="col-md-6">
+                <div class="f-light">Started</div>
+                <div class="f-w-600">
+                  {{ order.started_at|localtime|date:'Y-m-d H:i' }}
+                  <small class="text-muted">({{ timezone }})</small>
+                </div>
+              </div>
+              {% endif %}
+              {% if order.completed_at %}
+              <div class="col-md-6">
+                <div class="f-light">Completed</div>
+                <div class="f-w-600">
+                  {{ order.completed_at|localtime|date:'Y-m-d H:i' }}
+                  <small class="text-muted">({{ timezone }})</small>
+                </div>
+              </div>
+              {% endif %}
+            </div>
+            <hr>
+            {% if order.type == 'service' %}
+            <div class="card border-primary mb-3">
+              <div class="card-header bg-primary text-white py-2">
+                <h6 class="mb-0"><i class="fa fa-tools me-2"></i>Service Details</h6>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <div class="d-flex align-items-center mb-1">
+                    <i class="fa fa-info-circle text-primary me-2"></i>
+                    <h6 class="mb-0 fw-bold">Service Description</h6>
+                  </div>
+                  <div class="ps-3 ms-3 border-start border-2 border-primary">
+                    {{ order.description|default:'No description provided'|linebreaks }}
+                  </div>
+                </div>
+                
+                <div class="d-flex align-items-center">
+                  <div class="d-flex align-items-center me-4">
+                    <i class="fa fa-clock text-primary me-2"></i>
+                    <div>
+                      <div class="text-muted small">Estimated Duration</div>
+                      <div class="fw-bold">{{ order.estimated_duration|default:'-' }} minutes</div>
+                    </div>
+                  </div>
+                  
+                  {% if order.status == 'completed' %}
+                  <div class="d-flex align-items-center">
+                    <i class="fa fa-check-circle text-success me-2"></i>
+                    <div>
+                      <div class="text-muted small">Actual Duration</div>
+                      <div class="fw-bold">
+                        {% if order.actual_duration %}
+                          {{ order.actual_duration }} minutes
+                        {% else %}
+                          Not recorded
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% elif order.type == 'sales' %}
+              <div class="row g-3">
+                <div class="col-md-6"><div class="f-light">Item</div><div class="f-w-600">{{ order.item_name }}</div></div>
+                <div class="col-md-6"><div class="f-light">Brand</div><div class="f-w-600">{{ order.brand }}</div></div>
+                <div class="col-md-6"><div class="f-light">Quantity</div><div class="f-w-600">{{ order.quantity }}</div></div>
+                <div class="col-md-6"><div class="f-light">Tire Type</div><div class="f-w-600">{{ order.tire_type|default:'-' }}</div></div>
+              </div>
+            {% else %}
+              <div class="row g-3">
+                <div class="col-md-6"><div class="f-light">Inquiry Type</div><div class="f-w-600">{{ order.inquiry_type|default:'General' }}</div></div>
+                <div class="col-md-6"><div class="f-light">Contact</div><div class="f-w-600 text-capitalize">{{ order.contact_preference|default:'phone' }}</div></div>
+                <div class="col-12"><div class="f-light">Questions</div><div>{{ order.questions|linebreaksbr }}</div></div>
+                {% if order.follow_up_date %}<div class="col-md-6"><div class="f-light">Follow up</div><div class="f-w-600">{{ order.follow_up_date }}</div></div>{% endif %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-4">
+        <div class="card"><div class="card-header"><h5 class="mb-0">Customer</h5></div>
+          <div class="card-body">
+            <div class="mb-2 f-w-600"><a href="{% url 'tracker:customer_detail' order.customer.id %}">{{ order.customer.full_name }}</a></div>
+            <div class="f-light">Phone</div><div class="mb-2">{{ order.customer.phone }}</div>
+            <div class="f-light">Email</div><div class="mb-2">{{ order.customer.email|default:'-' }}</div>
+            <div class="f-light">Type</div><div class="mb-2"><span class="badge bg-secondary">{{ order.customer.get_customer_type_display|default:"Personal" }}</span></div>
+            {% if order.customer.organization_name %}
+              <div class="f-light">Organization</div><div class="mb-2">{{ order.customer.organization_name }}</div>
+            {% endif %}
+            {% if order.customer.personal_subtype %}
+              <div class="f-light">Personal Type</div><div class="mb-2">{{ order.customer.get_personal_subtype_display }}</div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="card"><div class="card-header"><h5 class="mb-0">Vehicle</h5></div>
+          <div class="card-body">
+            {% if order.vehicle %}
+              <div class="mb-1">{{ order.vehicle.plate_number }}</div>
+              <div class="mb-1">{{ order.vehicle.make }} {{ order.vehicle.model }}</div>
+              <div class="mb-1 text-capitalize">{{ order.vehicle.vehicle_type }}</div>
+            {% else %}
+              <div>-</div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="card"><div class="card-header"><h5 class="mb-0">Update Status</h5></div>
+          <div class="card-body">
+            <form method="post" action="{% url 'tracker:update_order_status' order.id %}">
+              {% csrf_token %}
+              <div class="input-group">
+                <select name="status" class="form-select">
+                  {% for k,v in order.STATUS_CHOICES %}
+                    <option value="{{ k }}" {% if order.status == k %}selected{% endif %}>{{ v }}</option>
+                  {% endfor %}
+                </select>
+                <button class="btn btn-primary" type="submit">Update</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

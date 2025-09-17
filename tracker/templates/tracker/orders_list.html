@@ -1,0 +1,117 @@
+{% extends 'tracker/base.html' %}
+{% load static custom_filters tz %}
+
+{% block title %}Orders{% endblock %}
+
+{% block content %}
+  <div class="container-fluid">
+    <div class="page-title">
+      <div class="row">
+        <div class="col-6"><h4>Orders</h4></div>
+        <div class="col-6">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'tracker:dashboard' %}">Home</a></li>
+            <li class="breadcrumb-item active">Orders</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container-fluid">
+    <form class="row g-2 align-items-end mb-3" method="get" action="">
+      <div class="col-sm-3">
+        <label class="form-label mb-1">Status</label>
+        <select class="form-select" name="status">
+          <option value="all" {% if status == 'all' %}selected{% endif %}>All</option>
+          <option value="created" {% if status == 'created' %}selected{% endif %}>Created</option>
+          <option value="assigned" {% if status == 'assigned' %}selected{% endif %}>Assigned</option>
+          <option value="in_progress" {% if status == 'in_progress' %}selected{% endif %}>In Progress</option>
+          <option value="completed" {% if status == 'completed' %}selected{% endif %}>Completed</option>
+          <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+        </select>
+      </div>
+      <div class="col-sm-3">
+        <label class="form-label mb-1">Type</label>
+        <select class="form-select" name="type">
+          <option value="all" {% if type == 'all' %}selected{% endif %}>All</option>
+          <option value="service" {% if type == 'service' %}selected{% endif %}>Service</option>
+          <option value="sales" {% if type == 'sales' %}selected{% endif %}>Sales</option>
+          <option value="consultation" {% if type == 'consultation' %}selected{% endif %}>Consultation</option>
+        </select>
+      </div>
+      <div class="col-sm-3">
+        <label class="form-label mb-1">Date</label>
+        <select class="form-select" name="date_range">
+          <option value="">Any time</option>
+          <option value="today">Today</option>
+          <option value="week">This week</option>
+          <option value="month">This month</option>
+        </select>
+      </div>
+      <div class="col-sm-3 d-flex gap-2 justify-content-end">
+        <button class="btn btn-primary" type="submit">Filter</button>
+        <a class="btn btn-outline-secondary" href="{% url 'tracker:orders_export' %}?status={{ status }}&type={{ type }}">Export</a>
+      </div>
+    </form>
+
+    <div class="row g-2 mb-3">
+      <div class="col-md-2"><div class="card"><div class="card-body p-2 text-center"><div class="f-12 f-light">Total</div><div class="f-w-600">{{ total_orders }}</div></div></div></div>
+
+    
+      <div class="col-md-3"><div class="card"><div class="card-body p-2 text-center"><div class="f-12 f-light">Completed Today</div><div class="f-w-600">{{ completed_today }}</div></div></div></div>
+      <div class="col-md-3"><div class="card"><div class="card-body p-2 text-center"><div class="f-12 f-light">Urgent</div><div class="f-w-600">{{ urgent_orders }}</div></div></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th class="text-center">Truck</th>
+                <th>Order</th>
+                <th>Customer</th>
+                <th>Vehicle</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Created</th>
+                <th>Updated</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for o in orders %}
+                <tr>
+                  <td class="text-center"><img class="truck-thumb" src="https://cdn.builder.io/api/v1/image/assets%2Fbebc376cdd2f4ab3aba9527a99ac7787%2F5125af9d931849989d61e52df11234aa?format=webp&width=800" alt="Truck"></td>
+                  <td class="text-nowrap"><a href="{% url 'tracker:order_detail' o.id %}">{{ o.order_number }}</a></td>
+                  <td class="text-nowrap"><a href="{% url 'tracker:customer_detail' o.customer.id %}">{{ o.customer.full_name }}</a></td>
+                  <td class="text-nowrap">{{ o.vehicle.plate_number|default:'-' }}</td>
+                  <td class="text-capitalize">{{ o.type }}</td>
+                  <td class="text-capitalize">{{ o.status }}</td>
+                  <td class="text-capitalize">{{ o.priority }}</td>
+                  <td>
+                    {{ o.created_at|localtime|date:'Y-m-d H:i' }}
+                    <small class="text-muted d-block">{{ timezone }}</small>
+                  </td>
+                  <td>
+                    {{ o|order_last_update|localtime|date:'Y-m-d H:i' }}
+                    <small class="text-muted d-block">{{ timezone }}</small>
+                  </td>
+                  <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{% url 'tracker:order_detail' o.id %}">View</a></td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="10" class="text-center p-4">No orders</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'assets/js/profile-header-fixes.js' %}"></script>
+{% endblock %}

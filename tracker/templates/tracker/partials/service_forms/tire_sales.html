@@ -1,0 +1,284 @@
+<!-- Tire Sales Form -->
+<div class="card mb-4">
+  <div class="card-header bg-soft-success">
+    <h6 class="mb-0"><i class="fa fa-tire me-2"></i>Tire Purchase Details</h6>
+  </div>
+  <div class="card-body">
+    <div class="row g-3">
+      <!-- Item Name -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label fw-500" for="id_item_name">
+            Item Name <span class="text-danger">*</span>
+          </label>
+          <select name="item_name" id="id_item_name" class="form-select" required
+                  data-brands='{{ item_brands_json|default:"{}" }}'>
+            <option value="">Loading items...</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- Brand -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <!-- <label class="form-label fw-500" for="id_brand">
+            Brand <span class="text-danger">*</span>
+          </label> -->
+          <select name="brand" id="id_brand" class="form-select" required>
+            <!-- <option value="">Select Brand</option> -->
+            <!-- <option value="michelin" {% if form.brand.value == 'michelin' %}selected{% endif %}>Michelin</option>
+            <option value="bridgestone" {% if form.brand.value == 'bridgestone' %}selected{% endif %}>Bridgestone</option>
+            <option value="goodyear" {% if form.brand.value == 'goodyear' %}selected{% endif %}>Goodyear</option>
+            <option value="continental" {% if form.brand.value == 'continental' %}selected{% endif %}>Continental</option>
+            <option value="pirelli" {% if form.brand.value == 'pirelli' %}selected{% endif %}>Pirelli</option> -->
+          </select>
+        </div>
+      </div>
+      
+      <!-- Inventory Status -->
+      <div class="col-12" id="inventoryStatus"></div>
+
+      <!-- Tire Type -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label fw-500">
+            Tire Type <span class="text-danger">*</span>
+          </label>
+          <select name="tire_type" class="form-select" required>
+            <option value="">Select Type</option>
+            <option value="summer" {% if form.tire_type.value == 'summer' %}selected{% endif %}>Summer</option>
+            <option value="winter" {% if form.tire_type.value == 'winter' %}selected{% endif %}>Winter</option>
+            <option value="all_season" {% if form.tire_type.value == 'all_season' %}selected{% endif %}>All Season</option>
+            <option value="performance" {% if form.tire_type.value == 'performance' %}selected{% endif %}>Performance</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Size -->
+      
+
+      <div class="col-md-4">
+        <div class="form-group">
+          <label class="form-label fw-500">
+            Aspect Ratio <span class="text-danger">*</span>
+          </label>
+          <div class="input-group">
+            <input type="number" name="aspect_ratio" class="form-control" 
+                   min="30" max="90" step="5" required
+                   value="{{ form.aspect_ratio.value|default:'55' }}">
+            <span class="input-group-text">%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- <div class="col-md-4">
+        <div class="form-group">
+          <label class="form-label fw-500">
+            Rim Size <span class="text-danger">*</span>
+          </label>
+          <div class="input-group">
+            <input type="number" name="rim_size" class="form-control" 
+                   min="10" max="25" step="0.5" required
+                   value="{{ form.rim_size.value|default:'16' }}">
+            <span class="input-group-text">inch</span>
+          </div>
+        </div>
+      </div> -->
+
+      <!-- Quantity -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label fw-500" for="id_quantity">
+            Quantity <span class="text-danger">*</span>
+          </label>
+          <input type="number" name="quantity" id="id_quantity" class="form-control" 
+                 min="1" max="100" required
+                 value="{{ form.quantity.value|default:'1' }}">
+        </div>
+      </div>
+
+      <!-- Condition -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label fw-500">
+            Condition <span class="text-danger">*</span>
+          </label>
+          <select name="condition" class="form-select" required>
+            <option value="new" {% if form.condition.value == 'new' %}selected{% endif %}>New</option>
+            <option value="used" {% if form.condition.value == 'used' %}selected{% endif %}>Used</option>
+            <option value="refurbished" {% if form.condition.value == 'refurbished' %}selected{% endif %}>Refurbished</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Additional Notes -->
+      <div class="col-12">
+        <div class="form-group">
+          <label class="form-label fw-500" for="id_notes">
+            Special Requests
+          </label>
+          <textarea name="notes" id="id_notes" class="form-control" rows="2"
+                    placeholder="Any special requests or additional information">{{ form.notes.value|default:'' }}</textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const itemNameSelect = document.getElementById('id_item_name');
+    const brandSelect = document.getElementById('id_brand');
+    const inventoryStatus = document.getElementById('inventoryStatus');
+    
+    // Fetch inventory items from the backend
+    function fetchInventoryItems() {
+        return fetch('/api/inventory/items/')
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to fetch inventory items');
+                return response.json();
+            })
+            .then(data => {
+                // Clear existing options
+                itemNameSelect.innerHTML = '<option value="">Select Item</option>';
+                
+                if (data.items && data.items.length > 0) {
+                    // Group items by brand for better organization
+                    const itemsByBrand = {};
+                    const brandMap = {};
+                    
+                    data.items.forEach(item => {
+                        const brandName = item.brand || 'Unbranded';
+                        if (!itemsByBrand[brandName]) {
+                            itemsByBrand[brandName] = [];
+                        }
+                        itemsByBrand[brandName].push(item);
+                        
+                        // Store item-brand mapping for the data-brands attribute
+                        brandMap[item.name] = brandName;
+                    });
+                    
+                    // Update the data-brands attribute
+                    itemNameSelect.setAttribute('data-brands', JSON.stringify(brandMap));
+                    
+                    // Add items to select, grouped by brand
+                    Object.entries(itemsByBrand).forEach(([brand, items]) => {
+                        const optgroup = document.createElement('optgroup');
+                        optgroup.label = brand;
+                        
+                        items.forEach(item => {
+                            const option = document.createElement('option');
+                            option.value = item.name;
+                            option.textContent = item.name;
+                            if (item.quantity !== undefined) {
+                                option.textContent += ` (${item.quantity} available)`;
+                            }
+                            optgroup.appendChild(option);
+                        });
+                        
+                        itemNameSelect.appendChild(optgroup);
+                    });
+                    
+                    // If there's a previously selected value, restore it
+                    const selectedItem = '{{ form.item_name.value|default:''|escapejs }}';
+                    if (selectedItem && selectedItem !== 'None') {
+                        // Set the value after a small delay to ensure the options are rendered
+                        setTimeout(() => {
+                            itemNameSelect.value = selectedItem;
+                            updateBrandFromItem(selectedItem);
+                        }, 100);
+                    }
+                } else {
+                    itemNameSelect.innerHTML = '<option value="">No items available</option>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading inventory items:', error);
+                itemNameSelect.innerHTML = '<option value="">Error loading items</option>';
+            });
+    }
+    
+    // Update brand selection based on selected item
+    function updateBrandFromItem(itemName) {
+        if (!itemName || !brandSelect) return;
+        
+        // Get the brand mapping from data-brands attribute
+        const mapping = {};
+        try {
+            mapping = JSON.parse(itemNameSelect.getAttribute('data-brands') || '{}');
+        } catch (e) {
+            console.error('Error parsing brand mapping:', e);
+            return;
+        }
+        
+        // Find the brand for this item
+        const brandName = mapping[itemName];
+        if (!brandName) return;
+        
+        // Find and select the corresponding brand
+        for (let i = 0; i < brandSelect.options.length; i++) {
+            if (brandSelect.options[i].text === brandName || brandSelect.options[i].value === brandName) {
+                brandSelect.selectedIndex = i;
+                break;
+            }
+        }
+        
+        // Trigger inventory check
+        checkInventory();
+    }
+    
+    function checkInventory() {
+        const itemName = itemNameSelect ? itemNameSelect.value : '';
+        const brand = brandSelect ? brandSelect.value : '';
+        
+        if (!itemName) {
+            inventoryStatus.innerHTML = '';
+            return;
+        }
+        
+        // Make API call to check inventory
+        fetch(`/api/inventory/check/?item=${encodeURIComponent(itemName)}&brand=${encodeURIComponent(brand)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.available > 0) {
+                    inventoryStatus.innerHTML = `
+                        <div class="alert alert-success p-2 mb-3">
+                            <i class="fa fa-check-circle me-2"></i>
+                            ${data.available} in stock
+                        </div>
+                    `;
+                } else {
+                    inventoryStatus.innerHTML = `
+                        <div class="alert alert-warning p-2 mb-3">
+                            <i class="fa fa-exclamation-triangle me-2"></i>
+                            Out of stock
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error checking inventory:', error);
+                inventoryStatus.innerHTML = '';
+            });
+    }
+    
+    // Initialize the form
+    if (itemNameSelect && brandSelect) {
+        // Set up event listeners
+        itemNameSelect.addEventListener('change', function() {
+            updateBrandFromItem(this.value);
+            checkInventory();
+        });
+        
+        brandSelect.addEventListener('change', checkInventory);
+        
+        // Load inventory items
+        fetchInventoryItems().then(() => {
+            // Check inventory if there's a pre-selected item
+            if (itemNameSelect.value) {
+                checkInventory();
+            }
+        });
+    }
+});
+</script>

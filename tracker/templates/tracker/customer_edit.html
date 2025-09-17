@@ -1,0 +1,252 @@
+{% extends 'tracker/base.html' %}
+{% load static %}
+
+{% block title %}Edit Customer - {{ customer.full_name }}{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'assets/css/custom.css' %}">
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid">
+    <div class="page-title">
+      <div class="row">
+        <div class="col-6">
+          <h4>Edit Customer</h4>
+          <p class="text-muted mb-0">{{ customer.full_name }} ({{ customer.code }})</p>
+        </div>
+        <div class="col-6">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'tracker:customers_list' %}">Customers</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'tracker:customer_detail' customer.pk %}">{{ customer.full_name }}</a></li>
+            <li class="breadcrumb-item active">Edit</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-xl-8">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">Customer Information</h5>
+          </div>
+          <div class="card-body">
+            {% if messages %}
+              {% for m in messages %}
+                <div class="alert alert-{{ m.tags }} alert-dismissible fade show" role="alert">
+                  {{ m }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+              {% endfor %}
+            {% endif %}
+
+            <form method="post" novalidate>
+              {% csrf_token %}
+              
+              <!-- Basic Information -->
+              <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                  <h6 class="mb-0"><i class="fa fa-user me-2"></i>Basic Information</h6>
+                </div>
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label class="form-label fw-bold">
+                          <i class="fa fa-user me-2 text-primary"></i>
+                          Full Name <span class="text-danger">*</span>
+                        </label>
+                        {{ form.full_name }}
+                        {% if form.full_name.errors %}
+                          <div class="text-danger small mt-1">{{ form.full_name.errors|striptags }}</div>
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label class="form-label fw-bold">
+                          <i class="fa fa-phone me-2 text-primary"></i>
+                          Phone Number <span class="text-danger">*</span>
+                        </label>
+                        {{ form.phone }}
+                        {% if form.phone.errors %}
+                          <div class="text-danger small mt-1">{{ form.phone.errors|striptags }}</div>
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label class="form-label fw-bold">
+                          <i class="fa fa-envelope me-2 text-primary"></i>
+                          Email Address
+                        </label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                          <div class="text-danger small mt-1">{{ form.email.errors|striptags }}</div>
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label class="form-label fw-bold">
+                          <i class="fa fa-map-marker-alt me-2 text-primary"></i>
+                          Address
+                        </label>
+                        {{ form.address }}
+                        {% if form.address.errors %}
+                          <div class="text-danger small mt-1">{{ form.address.errors|striptags }}</div>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Customer Type Information -->
+              <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                  <h6 class="mb-0"><i class="fa fa-users me-2"></i>Customer Type Information</h6>
+                </div>
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label class="form-label fw-bold">
+                          <i class="fa fa-user-circle me-2 text-secondary"></i>
+                          Customer Type <span class="text-danger">*</span>
+                        </label>
+                        {{ form.customer_type }}
+                        {% if form.customer_type.errors %}
+                          <div class="text-danger small mt-1">{{ form.customer_type.errors|striptags }}</div>
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="col-md-6" id="personal-subtype-field" style="display: none;">
+                      <div class="form-group">
+                        <label class="form-label fw-bold">
+                          <i class="fa fa-user-tag me-2 text-secondary"></i>
+                          Personal Type <span class="text-danger">*</span>
+                        </label>
+                        {{ form.personal_subtype }}
+                        {% if form.personal_subtype.errors %}
+                          <div class="text-danger small mt-1">{{ form.personal_subtype.errors|striptags }}</div>
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="col-md-6" id="organization-field" style="display: none;">
+                      <div class="form-group">
+                        <label class="form-label fw-bold">
+                          <i class="fa fa-building me-2 text-secondary"></i>
+                          Organization Name <span class="text-danger">*</span>
+                        </label>
+                        {{ form.organization_name }}
+                        {% if form.organization_name.errors %}
+                          <div class="text-danger small mt-1">{{ form.organization_name.errors|striptags }}</div>
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="col-md-6" id="tax-field" style="display: none;">
+                      <div class="form-group">
+                        <label class="form-label fw-bold">
+                          <i class="fa fa-file-invoice me-2 text-secondary"></i>
+                          Tax Number/TIN <span class="text-danger">*</span>
+                        </label>
+                        {{ form.tax_number }}
+                        {% if form.tax_number.errors %}
+                          <div class="text-danger small mt-1">{{ form.tax_number.errors|striptags }}</div>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Additional Information -->
+              <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                  <h6 class="mb-0"><i class="fa fa-sticky-note me-2"></i>Additional Information</h6>
+                </div>
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label class="form-label fw-bold">
+                          <i class="fa fa-flag me-2 text-info"></i>
+                          Current Status
+                        </label>
+                        {{ form.current_status }}
+                        {% if form.current_status.errors %}
+                          <div class="text-danger small mt-1">{{ form.current_status.errors|striptags }}</div>
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="form-group">
+                        <label class="form-label fw-bold">
+                          <i class="fa fa-comment me-2 text-info"></i>
+                          Notes
+                        </label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                          <div class="text-danger small mt-1">{{ form.notes.errors|striptags }}</div>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-between">
+                <a href="{% url 'tracker:customer_detail' customer.pk %}" class="btn btn-outline-secondary btn-lg">
+                  <i class="fa fa-arrow-left me-2"></i>Cancel
+                </a>
+                <button type="submit" class="btn btn-primary btn-lg">
+                  <i class="fa fa-save me-2"></i>Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const customerTypeSelect = document.getElementById('id_customer_type');
+    const personalSubtypeField = document.getElementById('personal-subtype-field');
+    const organizationField = document.getElementById('organization-field');
+    const taxField = document.getElementById('tax-field');
+
+    function toggleFields() {
+      if (!customerTypeSelect) return;
+      
+      const selectedType = customerTypeSelect.value;
+      
+      // Hide all conditional fields first
+      if (personalSubtypeField) personalSubtypeField.style.display = 'none';
+      if (organizationField) organizationField.style.display = 'none';
+      if (taxField) taxField.style.display = 'none';
+      
+      // Show relevant fields based on selection
+      if (selectedType === 'personal') {
+        if (personalSubtypeField) personalSubtypeField.style.display = 'block';
+      } else if (['company', 'government', 'ngo'].includes(selectedType)) {
+        if (organizationField) organizationField.style.display = 'block';
+        if (taxField) taxField.style.display = 'block';
+      }
+    }
+
+    if (customerTypeSelect) {
+      customerTypeSelect.addEventListener('change', toggleFields);
+      // Initialize on page load
+      toggleFields();
+    }
+  });
+</script>
+{% endblock %}

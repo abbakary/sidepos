@@ -1,0 +1,539 @@
+{% extends 'tracker/base.html' %}
+{% load static %}
+
+{% block title %}New Order{% endblock %}
+
+{% block content %}
+  <div class="container-fluid">
+    <div class="page-title">
+      <div class="row">
+        <div class="col-6"><h4>New Order</h4></div>
+        <div class="col-6">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'tracker:orders_list' %}">Orders</a></li>
+            <li class="breadcrumb-item active">Create</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if not customer %}
+  <div class="container-fluid">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Select Customer</h5>
+        <div class="row">
+          <div class="col-md-8">
+            <div class="input-group mb-3">
+              <input type="text" class="form-control" id="customerSearch" placeholder="Search for customer by name, phone, or email...">
+              <button class="btn btn-primary" type="button" id="searchCustomerBtn">
+                <i class="fa fa-search"></i> Search
+              </button>
+            </div>
+            <div id="searchResults" class="list-group" style="display: none;">
+              <!-- Search results will be populated here -->
+            </div>
+            <div id="selectedCustomer" class="mt-3" style="display: none;">
+              <div class="card">
+                <div class="card-body">
+                  <h6 class="card-subtitle mb-2 text-muted">Selected Customer</h6>
+                  <h5 id="customerName" class="card-title"></h5>
+                  <p class="card-text mb-1">Phone: <span id="customerPhone"></span></p>
+                  <p class="card-text mb-1">Email: <span id="customerEmail"></span></p>
+                  <p class="card-text mb-1">Type: <span id="customerType" class="badge bg-secondary"></span></p>
+                  <button class="btn btn-sm btn-outline-secondary" id="changeCustomer">Change Customer</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if customer %}
+  <div class="container-fluid">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Customer Information</h5>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="d-flex align-items-center mb-2">
+              <i class="fa fa-user text-primary me-2"></i>
+              <strong>{{ customer.full_name }}</strong>
+            </div>
+            <div class="d-flex align-items-center mb-2">
+              <i class="fa fa-phone text-success me-2"></i>
+              <span>{{ customer.phone }}</span>
+            </div>
+            {% if customer.email %}
+              <div class="d-flex align-items-center mb-2">
+                <i class="fa fa-envelope text-info me-2"></i>
+                <span>{{ customer.email }}</span>
+              </div>
+            {% endif %}
+          </div>
+          <div class="col-md-6">
+            <div class="d-flex align-items-center mb-2">
+              <i class="fa fa-tag text-secondary me-2"></i>
+              <span class="badge bg-secondary">{{ customer.get_customer_type_display|default:"Personal" }}</span>
+            </div>
+            {% if customer.organization_name %}
+              <div class="d-flex align-items-center mb-2">
+                <i class="fa fa-building text-primary me-2"></i>
+                <span>{{ customer.organization_name }}</span>
+              </div>
+            {% endif %}
+            {% if customer.personal_subtype %}
+              <div class="d-flex align-items-center mb-2">
+                <i class="fa fa-user-tag text-info me-2"></i>
+                <span>{{ customer.get_personal_subtype_display }}</span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="mt-2">
+          <a href="{% url 'tracker:customer_detail' customer.pk %}" class="btn btn-sm btn-outline-primary">
+            <i class="fa fa-eye me-1"></i>View Details
+          </a>
+          <a href="{% url 'tracker:order_start' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="fa fa-user-plus me-1"></i>Change Customer
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="container-fluid">
+    <div class="card">
+      <div class="card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {% if customer %}<input type="hidden" name="customer_id" value="{{ customer.id }}">{% endif %}
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">{{ form.type.label }}</label>
+              {{ form.type }}
+              {% if form.type.errors %}<div class="text-danger f-12">{{ form.type.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">{{ form.priority.label }}</label>
+              {{ form.priority }}
+              {% if form.priority.errors %}<div class="text-danger f-12">{{ form.priority.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">{{ form.vehicle.label }}</label>
+              {{ form.vehicle }}
+              {% if form.vehicle.errors %}<div class="text-danger f-12">{{ form.vehicle.errors|striptags }}</div>{% endif %}
+              <small class="text-muted">Or fill vehicle info below for new vehicles.</small>
+            </div>
+          </div>
+
+          <div class="mt-3" id="section-service" {% if form.initial.type and form.initial.type != 'service' %}style="display:none"{% endif %}>
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="card border-success">
+                  <div class="card-header bg-success text-white">
+                    <h6 class="mb-0"><i class="fa fa-list-check me-2"></i>Service Offered</h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="row g-2 align-items-center mb-2">
+                      <div class="col-md-6">
+                        <small class="text-muted">Choose one or more services</small>
+                      </div>
+                      <div class="col-md-6 d-flex gap-2 justify-content-md-end">
+                        <input type="search" id="svcSearch" class="form-control form-control-sm" placeholder="Search services...">
+                        <button type="button" class="btn btn-sm btn-light" id="svcSelectAll">Select all</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="svcClearAll">Clear</button>
+                      </div>
+                    </div>
+                    <div class="row g-3" id="svcList">
+                      {% with sel=form.service_selection.value %}
+                        {% for code,label in form.service_selection.field.choices %}
+                          <div class="col-md-4">
+                            <div class="form-check">
+                              <input class="form-check-input" type="checkbox" name="service_selection" id="svc-{{ forloop.counter0 }}" value="{{ code }}" {% if sel and code in sel %}checked{% endif %}>
+                              <label class="form-check-label" for="svc-{{ forloop.counter0 }}">{{ label }}</label>
+                            </div>
+                          </div>
+                        {% endfor %}
+                      {% endwith %}
+                    </div>
+                    {% if form.service_selection.errors %}<div class="text-danger f-12 mt-2">{{ form.service_selection.errors|striptags }}</div>{% endif %}
+                    <script>
+                      document.addEventListener('DOMContentLoaded', function(){
+                        var list=document.getElementById('svcList');
+                        var allBtn=document.getElementById('svcSelectAll');
+                        var clrBtn=document.getElementById('svcClearAll');
+                        var search=document.getElementById('svcSearch');
+                        function setAll(v){ if(!list) return; list.querySelectorAll('input[type=checkbox][name="service_selection"]').forEach(function(cb){ cb.checked=v; }); }
+                        function filter(){ if(!list||!search) return; var q=(search.value||'').toLowerCase(); list.querySelectorAll('.col-md-4').forEach(function(col){ var lbl=col.querySelector('label'); var inp=col.querySelector('input'); var t=((lbl&&lbl.textContent)||'').toLowerCase(); var c=(inp&&inp.value||'').toLowerCase(); col.style.display = (!q || t.indexOf(q)>-1 || c.indexOf(q)>-1) ? '' : 'none'; }); }
+                        if(allBtn) allBtn.addEventListener('click', function(){ setAll(true); });
+                        if(clrBtn) clrBtn.addEventListener('click', function(){ setAll(false); });
+                        if(search){ search.addEventListener('input', filter); }
+                        filter();
+                      });
+                    </script>
+                  </div>
+                  <style>
+                    /* Custom checkbox styling */
+                    .form-check {
+                      padding: 10px;
+                      border: 1px solid #e0e0e0;
+                      border-radius: 6px;
+                      margin-bottom: 8px;
+                      transition: all 0.2s ease;
+                      height: 100%;
+                    }
+                    .form-check:hover {
+                      background-color: #f8f9fa;
+                      border-color: #0d6efd;
+                    }
+                    .form-check-input:checked + .form-check-label {
+                      font-weight: 600;
+                      color: #0d6efd;
+                    }
+                    .form-check-input {
+                      margin-top: 0.3em;
+                    }
+                  </style>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="card">
+                  <div class="card-header">
+                    <h6 class="mb-0">Vehicle Information (optional)</h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="row g-3">
+                      <div class="col-md-3">
+                        <label class="form-label">Plate Number</label>
+                        <input type="text" name="plate_number" class="form-control" placeholder="e.g., T123ABC">
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label">Make</label>
+                        <input type="text" name="make" class="form-control" placeholder="e.g., Toyota">
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label">Model</label>
+                        <input type="text" name="model" class="form-control" placeholder="e.g., Corolla">
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label">Vehicle Type</label>
+                        <select name="vehicle_type" class="form-select">
+                          <option value="">Select type</option>
+                          <option>Car</option>
+                          <option>SUV</option>
+                          <option>Truck</option>
+                          <option>Motorcycle</option>
+                          <option>Bus</option>
+                          <option>Van</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-8">
+                <label class="form-label">{{ form.description.label }}</label>
+                {{ form.description }}
+                {% if form.description.errors %}<div class="text-danger f-12">{{ form.description.errors|striptags }}</div>{% endif %}
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">{{ form.estimated_duration.label }}</label>
+                {{ form.estimated_duration }}
+                {% if form.estimated_duration.errors %}<div class="text-danger f-12">{{ form.estimated_duration.errors|striptags }}</div>{% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-3" id="section-sales" {% if form.initial.type and form.initial.type != 'sales' %}style="display:none"{% endif %}>
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="card border-warning">
+                  <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="fa fa-list-check me-2"></i>Tire Service Add-ons</h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="row g-3">
+                      <div class="col-md-3">
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" id="oc_ts_install" name="tire_services" value="install">
+                          <label class="form-check-label" for="oc_ts_install">Install Tires</label>
+                        </div>
+                      </div>
+                      <div class="col-md-3">
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" id="oc_ts_balance" name="tire_services" value="balancing">
+                          <label class="form-check-label" for="oc_ts_balance">Wheel Balancing</label>
+                        </div>
+                      </div>
+                      <div class="col-md-3">
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" id="oc_ts_align" name="tire_services" value="alignment">
+                          <label class="form-check-label" for="oc_ts_align">Wheel Alignment</label>
+                        </div>
+                      </div>
+                      <div class="col-md-3">
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" id="oc_ts_dispose" name="tire_services" value="disposal">
+                          <label class="form-check-label" for="oc_ts_dispose">Old Tire Disposal</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label">{{ form.item_name.label }}</label>
+                {{ form.item_name }}
+                {% if form.item_name.errors %}<div class="text-danger f-12">{{ form.item_name.errors|striptags }}</div>{% endif %}
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">{{ form.brand.label }}</label>
+                {{ form.brand }}
+                {% if form.brand.errors %}<div class="text-danger f-12">{{ form.brand.errors|striptags }}</div>{% endif %}
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">{{ form.quantity.label }}</label>
+                {{ form.quantity }}
+                {% if form.quantity.errors %}<div class="text-danger f-12">{{ form.quantity.errors|striptags }}</div>{% endif %}
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">{{ form.tire_type.label }}</label>
+                {{ form.tire_type }}
+                {% if form.tire_type.errors %}<div class="text-danger f-12">{{ form.tire_type.errors|striptags }}</div>{% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-3" id="section-consultation" {% if form.initial.type and form.initial.type != 'consultation' %}style="display:none"{% endif %}>
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">{{ form.inquiry_type.label }}</label>
+                {{ form.inquiry_type }}
+                {% if form.inquiry_type.errors %}<div class="text-danger f-12">{{ form.inquiry_type.errors|striptags }}</div>{% endif %}
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">{{ form.contact_preference.label }}</label>
+                {{ form.contact_preference }}
+                {% if form.contact_preference.errors %}<div class="text-danger f-12">{{ form.contact_preference.errors|striptags }}</div>{% endif %}
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">{{ form.follow_up_date.label }}</label>
+                {{ form.follow_up_date }}
+                {% if form.follow_up_date.errors %}<div class="text-danger f-12">{{ form.follow_up_date.errors|striptags }}</div>{% endif %}
+              </div>
+              <div class="col-12">
+                <label class="form-label">{{ form.questions.label }}</label>
+                {{ form.questions }}
+                {% if form.questions.errors %}<div class="text-danger f-12">{{ form.questions.errors|striptags }}</div>{% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mt-4">
+            <a class="btn btn-light" href="{% url 'tracker:orders_list' %}">Cancel</a>
+            <button class="btn btn-success" type="submit">Create Order</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% block extra_js %}
+  <script>
+    (function(){
+      // Handle order type switching
+      var typeEl = document.getElementById('{{ form.type.id_for_label }}') || document.querySelector('[name="{{ form.type.html_name }}"]');
+      function updateSections(){
+        var t = (typeEl && (typeEl.value || typeEl.options && typeEl.options[typeEl.selectedIndex].value)) || '';
+        document.getElementById('section-service').style.display = (t==='service')? 'block':'none';
+        document.getElementById('section-sales').style.display = (t==='sales')? 'block':'none';
+        document.getElementById('section-consultation').style.display = (t==='consultation')? 'block':'none';
+      }
+      if(typeEl){ typeEl.addEventListener('change', updateSections); updateSections(); }
+
+      // Auto-select brand when item changes using data-brands mapping
+      (function(){
+        var itemEl = document.getElementById('id_item_name');
+        var brandEl = document.getElementById('id_brand');
+        if (!itemEl || !brandEl) return;
+        var mapping = {};
+        try { mapping = JSON.parse(itemEl.getAttribute('data-brands') || '{}'); } catch(e) { mapping = {}; }
+        itemEl.addEventListener('change', function(){
+          var bn = mapping[this.value];
+          if (!bn) return;
+          for (var i = 0; i < brandEl.options.length; i++) {
+            if (brandEl.options[i].text === bn || brandEl.options[i].value === bn) {
+              brandEl.selectedIndex = i;
+              break;
+            }
+          }
+        });
+      })();
+
+      // Handle customer search and selection
+      const searchInput = document.getElementById('customerSearch');
+      const searchBtn = document.getElementById('searchCustomerBtn');
+      const searchResults = document.getElementById('searchResults');
+      const selectedCustomer = document.getElementById('selectedCustomer');
+      const customerForm = document.querySelector('form[method="post"]');
+      
+      // Only initialize customer search if we don't have a customer already
+      if (searchInput && searchBtn && searchResults && selectedCustomer && customerForm) {
+      
+      // Search for customers
+      function searchCustomers() {
+        const query = searchInput.value.trim();
+        if (query.length < 2) {
+          searchResults.style.display = 'none';
+          return;
+        }
+
+        fetch(`/customers/search/?q=${encodeURIComponent(query)}&details=1`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.results && data.results.length > 0) {
+              searchResults.innerHTML = '';
+              data.results.forEach(customer => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'list-group-item list-group-item-action';
+                item.innerHTML = `
+                  <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">${customer.name}</h6>
+                    <small>#${customer.code || customer.id}</small>
+                  </div>
+                  <p class="mb-1">${customer.phone || 'No phone'}</p>
+                  <small>${customer.email || 'No email'}</small>
+                `;
+                item.addEventListener('click', () => selectCustomer(customer));
+                searchResults.appendChild(item);
+              });
+              searchResults.style.display = 'block';
+            } else {
+              searchResults.innerHTML = '<div class="list-group-item">No customers found</div>';
+              searchResults.style.display = 'block';
+            }
+          })
+          .catch(error => {
+            console.error('Error searching customers:', error);
+            searchResults.innerHTML = '<div class="list-group-item text-danger">Error loading customers</div>';
+            searchResults.style.display = 'block';
+          });
+      }
+
+      // Select a customer
+      function selectCustomer(customer) {
+        document.getElementById('customerName').textContent = customer.name;
+        document.getElementById('customerPhone').textContent = customer.phone || 'N/A';
+        document.getElementById('customerEmail').textContent = customer.email || 'N/A';
+        document.getElementById('customerType').textContent = customer.customer_type_display || 'Personal';
+        
+        // Store customer ID in a hidden field
+        let customerIdField = document.querySelector('input[name="customer_id"]');
+        if (!customerIdField) {
+          customerIdField = document.createElement('input');
+          customerIdField.type = 'hidden';
+          customerIdField.name = 'customer_id';
+          customerForm.prepend(customerIdField);
+        }
+        customerIdField.value = customer.id;
+        
+        // Show selected customer and hide search
+        selectedCustomer.style.display = 'block';
+        searchResults.style.display = 'none';
+        searchInput.value = '';
+        
+        // Load customer's vehicles
+        loadCustomerVehicles(customer.id);
+      }
+
+      // Load customer's vehicles
+      function loadCustomerVehicles(customerId) {
+        fetch(`/api/customers/${customerId}/vehicles/`)
+          .then(response => response.json())
+          .then(data => {
+            const vehicleSelect = document.getElementById('{{ form.vehicle.id_for_label }}');
+            if (vehicleSelect) {
+              // Save current value
+              const currentValue = vehicleSelect.value;
+              
+              // Clear existing options
+              vehicleSelect.innerHTML = '<option value="">Select a vehicle</option>';
+              
+              // Add customer's vehicles
+              if (data.vehicles && data.vehicles.length > 0) {
+                data.vehicles.forEach(vehicle => {
+                  const option = document.createElement('option');
+                  option.value = vehicle.id;
+                  const vehicleLabel = [
+                    vehicle.make || '',
+                    vehicle.model || '',
+                    vehicle.year ? `(${vehicle.year})` : '',
+                    vehicle.license_plate ? `- ${vehicle.license_plate}` : ''
+                  ].filter(Boolean).join(' ');
+                  option.textContent = vehicleLabel || 'Unnamed Vehicle';
+                  vehicleSelect.appendChild(option);
+                });
+              } else {
+                // Add a disabled option if no vehicles found
+                const option = document.createElement('option');
+                option.disabled = true;
+                option.selected = true;
+                option.textContent = 'No vehicles found for this customer';
+                vehicleSelect.appendChild(option);
+              }
+              
+              // Restore previous value if it exists in the new options
+              if (currentValue) {
+                vehicleSelect.value = currentValue;
+              }
+              
+              // Enable the vehicle select if it was disabled
+              vehicleSelect.disabled = false;
+            }
+          })
+          .catch(error => {
+            console.error('Error loading vehicles:', error);
+            const vehicleSelect = document.getElementById('{{ form.vehicle.id_for_label }}');
+            if (vehicleSelect) {
+              vehicleSelect.innerHTML = '<option value="" disabled selected>Error loading vehicles</option>';
+              vehicleSelect.disabled = true;
+            }
+          });
+      }
+
+      // Event listeners
+      searchBtn.addEventListener('click', searchCustomers);
+      searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          searchCustomers();
+        }
+      });
+
+      const changeCustomerBtn = document.getElementById('changeCustomer');
+      if (changeCustomerBtn) {
+        changeCustomerBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          selectedCustomer.style.display = 'none';
+          searchInput.focus();
+        });
+      }
+      
+      // Disable the vehicle select by default until a customer is selected
+      const vehicleSelect = document.getElementById('{{ form.vehicle.id_for_label }}');
+      if (vehicleSelect) {
+        vehicleSelect.disabled = true;
+      }
+      }
+    })();
+  </script>
+  {% endblock %}
+{% endblock %}

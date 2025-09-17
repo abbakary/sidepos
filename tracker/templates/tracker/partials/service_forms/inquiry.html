@@ -1,0 +1,124 @@
+<!-- Inquiry Form -->
+<div class="card mb-4">
+  <div class="card-header bg-soft-info">
+    <h6 class="mb-0"><i class="fa fa-question-circle me-2"></i>Inquiry Details</h6>
+  </div>
+  <div class="card-body">
+    <div class="row g-3">
+      <!-- Inquiry Type -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label fw-500">
+            Inquiry Type <span class="text-danger">*</span>
+          </label>
+          <select name="inquiry_type" class="form-select" required>
+            <option value="">Select Inquiry Type</option>
+            <option value="pricing" {% if form.inquiry_type.value == 'pricing' %}selected{% endif %}>Pricing Information</option>
+            <option value="service_info" {% if form.inquiry_type.value == 'service_info' %}selected{% endif %}>Service Information</option>
+            <option value="appointment" {% if form.inquiry_type.value == 'appointment' %}selected{% endif %}>Appointment Booking</option>
+            <option value="general" {% if form.inquiry_type.value == 'general' or not form.inquiry_type.value %}selected{% endif %}>General Question</option>
+            <option value="feedback" {% if form.inquiry_type.value == 'feedback' %}selected{% endif %}>Feedback</option>
+            <option value="complaint" {% if form.inquiry_type.value == 'complaint' %}selected{% endif %}>Complaint</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Preferred Contact Method -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label fw-500">
+            Preferred Contact Method <span class="text-danger">*</span>
+          </label>
+          <div class="d-flex gap-3">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="contact_method" 
+                     id="contact-phone" value="phone" required
+                     {% if form.contact_method.value == 'phone' or not form.contact_method.value %}checked{% endif %}>
+              <label class="form-check-label" for="contact-phone">
+                <i class="fa fa-phone me-1"></i> Phone Call
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="contact_method" 
+                     id="contact-email" value="email"
+                     {% if form.contact_method.value == 'email' %}checked{% endif %}>
+              <label class="form-check-label" for="contact-email">
+                <i class="fa fa-envelope me-1"></i> Email
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="contact_method" 
+                     id="contact-sms" value="sms"
+                     {% if form.contact_method.value == 'sms' %}checked{% endif %}>
+              <label class="form-check-label" for="contact-sms">
+                <i class="fa fa-comment me-1"></i> SMS
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subject -->
+      <div class="col-12">
+        <div class="form-group">
+          <label class="form-label fw-500">
+            Subject <span class="text-danger">*</span>
+          </label>
+          <input type="text" name="subject" class="form-control" required
+                 value="{{ form.subject.value|default:'' }}"
+                 placeholder="Briefly describe your inquiry">
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="col-12">
+        <div class="form-group">
+          <label class="form-label fw-500">
+            Detailed Description <span class="text-danger">*</span>
+          </label>
+          <textarea name="description" class="form-control" rows="4" required
+                    placeholder="Please provide as much detail as possible about your inquiry">{{ form.description.value|default:'' }}</textarea>
+          <small class="text-muted">The more details you provide, the better we can assist you.</small>
+        </div>
+      </div>
+
+      <!-- Preferred Date/Time -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label fw-500">
+            Preferred Contact Date
+          </label>
+          <input type="date" name="preferred_date" class="form-control"
+                 min="{{ now|date:'Y-m-d' }}"
+                 value="{{ form.preferred_date.value|default:'' }}">
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label fw-500">
+            Preferred Contact Time
+          </label>
+          <select name="preferred_time" class="form-select">
+            <option value="">Any Time</option>
+            <option value="morning" {% if form.preferred_time.value == 'morning' %}selected{% endif %}>Morning (8AM - 12PM)</option>
+            <option value="afternoon" {% if form.preferred_time.value == 'afternoon' or not form.preferred_time.value %}selected{% endif %}>Afternoon (12PM - 5PM)</option>
+            <option value="evening" {% if form.preferred_time.value == 'evening' %}selected{% endif %}>Evening (5PM - 8PM)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Follow-up Required -->
+      <div class="col-12">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="follow_up_required" 
+                 id="follow-up-required" value="true"
+                 {% if form.follow_up_required.value %}checked{% endif %}>
+          <label class="form-check-label" for="follow-up-required">
+            Please contact me for follow-up
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,175 @@
+<!-- Car Service Form -->
+<div class="card mb-4">
+  <div class="card-header bg-soft-primary">
+    <h6 class="mb-0"><i class="fa fa-car me-2"></i>Vehicle Information</h6>
+  </div>
+  <div class="card-body">
+    <div class="row g-3">
+      <!-- Vehicle Make -->
+      <div class="col-md-4">
+        <div class="form-group">
+          <label class="form-label fw-500">
+            Make <span class="text-danger">*</span>
+          </label>
+          <select name="vehicle_make" class="form-select" required>
+            <option value="">Select Make</option>
+            <option value="toyota" {% if form.vehicle_make.value == 'toyota' %}selected{% endif %}>Toyota</option>
+            <option value="honda" {% if form.vehicle_make.value == 'honda' %}selected{% endif %}>Honda</option>
+            <option value="nissan" {% if form.vehicle_make.value == 'nissan' %}selected{% endif %}>Nissan</option>
+            <option value="mitsubishi" {% if form.vehicle_make.value == 'mitsubishi' %}selected{% endif %}>Mitsubishi</option>
+            <option value="bmw" {% if form.vehicle_make.value == 'bmw' %}selected{% endif %}>BMW</option>
+            <option value="mercedes" {% if form.vehicle_make.value == 'mercedes' %}selected{% endif %}>Mercedes</option>
+            <option value="other" {% if form.vehicle_make.value == 'other' %}selected{% endif %}>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Vehicle Model -->
+      <div class="col-md-4">
+        <div class="form-group">
+          <label class="form-label fw-500">
+            Model <span class="text-danger">*</span>
+          </label>
+          <input type="text" name="vehicle_model" class="form-control" required
+                 value="{{ form.vehicle_model.value|default:'' }}"
+                 placeholder="e.g., Corolla">
+        </div>
+      </div>
+
+      <!-- Year -->
+      <div class="col-md-4">
+        <div class="form-group">
+          <label class="form-label fw-500">
+            Year <span class="text-danger">*</span>
+          </label>
+          <select name="vehicle_year" class="form-select" required>
+            <option value="">Select Year</option>
+            {% with current_year=now|date:"Y" %}
+              {% for year in "x"|ljust:"30" %}
+                {% with year_num=current_year|add:forloop.counter|add:"-30" %}
+                  <option value="{{ year_num }}" 
+                    {% if form.vehicle_year.value == year_num|stringformat:'s' %}selected{% endif %}>
+                    {{ year_num }}
+                  </option>
+                {% endwith %}
+              {% endfor %}
+            {% endwith %}
+          </select>
+        </div>
+      </div>
+
+      <!-- Plate Number -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label fw-500">
+            Plate Number <span class="text-danger">*</span>
+          </label>
+          <input type="text" name="plate_number" class="form-control text-uppercase" required
+                 value="{{ form.plate_number.value|default:'' }}"
+                 placeholder="e.g., T123ABC">
+        </div>
+      </div>
+
+      <!-- VIN -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label fw-500">
+            VIN (Optional)
+          </label>
+          <input type="text" name="vin" class="form-control"
+                 value="{{ form.vin.value|default:'' }}"
+                 placeholder="Vehicle Identification Number">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Service Selection -->
+<div class="card mb-4">
+  <div class="card-header bg-soft-primary">
+    <h6 class="mb-0"><i class="fa fa-tools me-2"></i>Service Selection</h6>
+  </div>
+  <div class="card-body">
+    <div class="mb-4">
+      <label class="form-label fw-500">Select Services <span class="text-danger">*</span></label>
+      <div class="row g-3">
+        {% for service in services %}
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check card p-3 border">
+              <input class="form-check-input" type="checkbox" 
+                     name="services" value="{{ service.id }}"
+                     id="service-{{ service.id }}"
+                     {% if service.id|stringformat:'s' in form.services.value %}checked{% endif %}>
+              <label class="form-check-label d-flex justify-content-between" for="service-{{ service.id }}">
+                <span>{{ service.name }}</span>
+                <span class="text-primary fw-500">{{ service.price|default:'' }}</span>
+              </label>
+              {% if service.description %}
+                <small class="text-muted">{{ service.description }}</small>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Problem Description -->
+    <div class="mb-4">
+      <label class="form-label fw-500">
+        Problem Description <span class="text-danger">*</span>
+      </label>
+      <textarea name="problem_description" class="form-control" rows="3" required
+                placeholder="Please describe the issue with your vehicle">{{ form.problem_description.value|default:'' }}</textarea>
+    </div>
+
+    <!-- Priority Level -->
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label fw-500">
+            Priority Level <span class="text-danger">*</span>
+          </label>
+          <select name="priority" class="form-select" required>
+            <option value="low" {% if form.priority.value == 'low' %}selected{% endif %}>
+              <i class="fa fa-arrow-down text-success me-2"></i> Low Priority
+            </option>
+            <option value="medium" {% if form.priority.value == 'medium' or not form.priority.value %}selected{% endif %}>
+              <i class="fa fa-equals text-warning me-2"></i> Medium Priority
+            </option>
+            <option value="high" {% if form.priority.value == 'high' %}selected{% endif %}>
+              <i class="fa fa-arrow-up text-danger me-2"></i> High Priority
+            </option>
+            <option value="urgent" {% if form.priority.value == 'urgent' %}selected{% endif %}>
+              <i class="fa fa-exclamation-triangle text-danger me-2"></i> Urgent
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Estimated Completion -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label fw-500">
+            Estimated Completion
+          </label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+            <input type="datetime-local" name="estimated_completion" 
+                   class="form-control"
+                   value="{{ form.estimated_completion.value|default:'' }}">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Additional Notes -->
+    <div class="mt-4">
+      <label class="form-label fw-500">
+        Additional Notes
+      </label>
+      <textarea name="service_notes" class="form-control" rows="2"
+                placeholder="Any additional information about the service">{{ form.service_notes.value|default:'' }}</textarea>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,1189 @@
+{% load static %}
+{% load humanize %}
+<html lang="en">
+  <head>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Riho admin is super flexible, powerful, clean &amp; modern responsive bootstrap 5 admin template with unlimited possibilities.">
+    <meta name="keywords" content="admin template, Riho admin template, dashboard template, flat admin template, responsive admin template, web app">
+    <meta name="author" content="pixelstrap">
+    <link rel="icon" href="{% static 'assets/images/favicon.png' %}" type="image/x-icon">
+    <link rel="shortcut icon" href="{% static 'assets/images/favicon.png' %}" type="image/x-icon">
+    <title>POS Tracker</title>
+    <!-- Google font-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/font-awesome.css' %}">
+    <!-- ico-font-->
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/vendors/icofont.css' %}">
+    <!-- Themify icon-->
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/vendors/themify.css' %}">
+    <!-- Flag icon-->
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/vendors/flag-icon.css' %}">
+    <!-- Feather icon-->
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/vendors/feather-icon.css' %}">
+    <!-- Plugins css start-->
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/vendors/slick.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/vendors/slick-theme.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/vendors/scrollbar.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/vendors/animate.css' %}">
+    <!-- Plugins css Ends-->
+    <!-- Bootstrap css-->
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/vendors/bootstrap.css' %}">
+    <!-- App css-->
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/style.css' %}">
+    <link id="color" rel="stylesheet" href="{% static 'assets/css/color-1.css' %}" media="screen">
+    <!-- Responsive css-->
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/responsive.css' %}">
+    <style>
+      /* ===== Dark Blue Sidebar Theme ===== */
+      /* Main sidebar container */
+      .page-wrapper .page-body-wrapper .sidebar-wrapper {
+        background: #001a35 !important;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+      }
+      
+      /* Sidebar links container */
+      .sidebar-wrapper .sidebar-main .sidebar-links {
+        background: #001a35 !important;
+      }
+      
+      /* Menu items */
+      .sidebar-wrapper .sidebar-main .sidebar-links > li > a.sidebar-title {
+        color: #e0e9ff !important;
+        border-bottom: 1px solid #003366 !important;
+        padding: 12px 20px !important;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+      
+      /* Menu items hover & active states */
+      .sidebar-wrapper .sidebar-main .sidebar-links > li > a.sidebar-title:hover,
+      .sidebar-wrapper .sidebar-main .sidebar-links > li.active > a.sidebar-title {
+        color: #7abaff !important;
+        background: rgba(0, 86, 179, 0.15) !important;
+      }
+      
+      /* Submenu styling */
+      .sidebar-wrapper .sidebar-main .sidebar-links > li .sidebar-submenu {
+        background: #00264d !important;
+        border-left: 4px solid #0066cc !important;
+      }
+      
+      /* Submenu items */
+      .sidebar-wrapper .sidebar-main .sidebar-links > li .sidebar-submenu li a {
+        color: #c2d6f0 !important;
+        padding: 8px 25px !important;
+        transition: all 0.2s ease;
+      }
+      
+      /* Submenu hover & active states */
+      .sidebar-wrapper .sidebar-main .sidebar-links > li .sidebar-submenu li a:hover,
+      .sidebar-wrapper .sidebar-main .sidebar-links > li .sidebar-submenu li.active a {
+        color: #ffffff !important;
+        background: rgba(0, 102, 204, 0.2) !important;
+        padding-left: 30px !important;
+      }
+      
+      /* Logo area */
+      .logo-wrapper,
+      .logo-icon-wrapper {
+        background: #001a35 !important;
+        border-bottom: 1px solid #003366 !important;
+        padding: 15px 20px;
+      }
+      
+      /* Navigation controls */
+      .page-wrapper .page-body-wrapper .sidebar-wrapper .logo-wrapper .back-btn,
+      .page-wrapper .page-body-wrapper .sidebar-wrapper .logo-wrapper .toggle-sidebar {
+        color: #e0e9ff !important;
+        transition: all 0.3s ease;
+      }
+      
+      .page-wrapper .page-body-wrapper .sidebar-wrapper .logo-wrapper .back-btn:hover,
+      .page-wrapper .page-body-wrapper .sidebar-wrapper .logo-wrapper .toggle-sidebar:hover {
+        background: rgba(0, 102, 204, 0.2) !important;
+      }
+      
+      /* Navigation arrows */
+      .sidebar-main .left-arrow,
+      .sidebar-main .right-arrow {
+        background: #00264d !important;
+        color: #e0e9ff !important;
+        border: 1px solid #003366 !important;
+      }
+      
+      /* Pinned items */
+      .pin-title {
+        color: #7abaff !important;
+        text-transform: uppercase;
+        font-size: 12px !important;
+        letter-spacing: 1px;
+        padding: 15px 20px 5px !important;
+        opacity: 0.8;
+      }
+      
+      /* Thumbtack icon for pinned items */
+      .sidebar-list > i.fa-thumb-tack {
+        position: absolute;
+        right: 15px;
+        top: 15px;
+        color: #4d88ff;
+        font-size: 12px;
+        opacity: 0.7;
+      }
+      
+      /* Active menu item indicator */
+      .sidebar-wrapper .sidebar-main .sidebar-links > li.active > a:before {
+        background-color: #4d88ff !important;
+      }
+    </style>
+    
+  </head>
+  <body> 
+    <!-- loader starts-->
+    <div class="loader-wrapper">
+      <div class="loader"> 
+        <div class="loader4"></div>
+      </div>
+    </div>
+    <!-- loader ends-->
+    <!-- tap on top starts-->
+    <div class="tap-top"><i data-feather="chevrons-up"></i></div>
+    <!-- tap on tap ends-->
+    <!-- page-wrapper Start-->
+    <div class="page-wrapper compact-wrapper" id="pageWrapper">
+      <!-- Page Header Start-->
+      <div class="page-header">
+        <div class="header-wrapper row m-0">
+          <form class="form-inline search-full col" action="#" method="get">
+            <div class="form-group w-100">
+              <div class="Typeahead Typeahead--twitterUsers">
+                <div class="u-posRelative"> 
+                  <input class="demo-input Typeahead-input form-control-plaintext w-100" type="text" placeholder="Search Riho .." name="q" title="" autofocus>
+                  <div class="spinner-border Typeahead-spinner" role="status"><span class="sr-only">Loading... </span></div><i class="close-search" data-feather="x"></i>
+                </div>
+                <div class="Typeahead-menu"> </div>
+              </div>
+            </div>
+          </form>
+          <div class="header-logo-wrapper col-auto p-0">  
+            <div class="logo-wrapper"> <a href="index.html"><img class="img-fluid for-light" src="../assets/images/logo/logo_dark.png" alt="logo-light"><img class="img-fluid for-dark" src="../assets/images/logo/logo.png" alt="logo-dark"></a></div>
+            <div class="toggle-sidebar"> <i class="status_toggle middle sidebar-toggle" data-feather="align-center"></i></div>
+          </div>
+          <div class="left-header col-xxl-5 col-xl-6 col-lg-5 col-md-4 col-sm-3 p-0">
+            <div> <a class="toggle-sidebar" href="#"> <i class="iconly-Category icli"> </i></a>
+              <div class="d-flex align-items-center gap-2 ">
+                <h4 class="f-w-600">Welcome <span style="color:blue">{{ user.username }}</span></h4><img class="mt-0" src="{% static 'assets/images/hand.gif' %}" alt="hand-gif">
+              </div>
+            </div>
+            <div class="welcome-content d-xl-block d-none"><span class="text-truncate col-12">Here’s what’s happening with your store today. </span></div>
+          </div>
+          <div class="nav-right col-xxl-7 col-xl-6 col-md-7 col-8 pull-right right-header p-0 ms-auto">
+            <ul class="nav-menus"> 
+              <li class="d-md-block d-none"> 
+                <div class="form search-form mb-0">
+                  <div class="input-group"><span class="input-icon">
+                      <svg>
+                        <use href="../assets/svg/icon-sprite.svg#search-header"></use>
+                      </svg>
+                      <input class="w-100" type="search" placeholder="Search"></span></div>
+                </div>
+              </li>
+              <li class="d-md-none d-block"> 
+                <div class="form search-form mb-0">
+                  <div class="input-group"> <span class="input-show"> 
+                      <svg id="searchIcon">
+                        <use href="../assets/svg/icon-sprite.svg#search-header"></use>
+                      </svg>
+                      <div id="searchInput">
+                        <input type="search" placeholder="Search">
+                      </div></span></div>
+                </div>
+              </li>
+              <li class="onhover-dropdown">
+                <svg>
+                  <use href="../assets/svg/icon-sprite.svg#star"></use>
+                </svg>
+                <div class="onhover-show-div bookmark-flip">
+                  <div class="flip-card">
+                    <div class="flip-card-inner">
+                      <div class="front">
+                        <h6 class="f-18 mb-0 dropdown-title">Bookmark</h6>
+                        <ul class="bookmark-dropdown">
+                          <li>
+                            <div class="row">
+                              <div class="col-4 text-center">
+                                <div class="bookmark-content">
+                                  <div class="bookmark-icon"><i data-feather="file-text"></i></div><span>Forms</span>
+                                </div>
+                              </div>
+                              <div class="col-4 text-center">
+                                <div class="bookmark-content">
+                                  <div class="bookmark-icon"><i data-feather="user"></i></div><span>Profile</span>
+                                </div>
+                              </div>
+                              <div class="col-4 text-center">
+                                <div class="bookmark-content">
+                                  <div class="bookmark-icon"><i data-feather="server"></i></div><span>Tables</span>
+                                </div>
+                              </div>
+                            </div>
+                          </li>
+                          <li class="text-center"><a class="flip-btn f-w-700" id="flip-btn" href="javascript:void(0)">Add New Bookmark</a></li>
+                        </ul>
+                      </div>
+                      <div class="back">
+                        <ul>
+                          <li>
+                            <div class="bookmark-dropdown flip-back-content">
+                              <input type="text" placeholder="search...">
+                            </div>
+                          </li>
+                          <li><a class="f-w-700 d-block flip-back" id="flip-back" href="javascript:void(0)">Back</a></li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </li>
+              <li> 
+                <div class="mode"><i class="moon" data-feather="moon"> </i></div>
+              </li>
+              <li class="onhover-dropdown notification-down">
+                <div class="notification-box"> 
+                  <i data-feather="bell"></i>
+                  {% with today_visitors=today_visitors|default:0 low_stock_items=low_stock_items|default:0 overdue_orders=overdue_orders|default:0 %}
+                    {% with total_notifications=today_visitors|add:low_stock_items|add:overdue_orders %}
+                      {% if total_notifications > 0 %}
+                        <span class="badge rounded-pill badge-secondary">{{ total_notifications }}</span>
+                      {% endif %}
+                    {% endwith %}
+                  {% endwith %}
+                </div>
+                <div class="onhover-show-div notification-dropdown"> 
+                  <div class="card mb-0"> 
+                    <div class="card-header">
+                      <div class="common-space"> 
+                        <h4 class="text-start f-w-600">Notifications</h4>
+                        <div><small class="text-muted">Summary</small></div>
+                      </div>
+                    </div>
+                    <div class="card-body p-0">
+                      <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                          Today's Visitors
+                          <span class="badge bg-success rounded-pill">{{ today_visitors|default:"0" }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                          Low Stock Items
+                          <span class="badge bg-danger rounded-pill">{{ low_stock_items|default:"0" }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                          Overdue Orders
+                          <span class="badge bg-warning rounded-pill">{{ overdue_orders|default:"0" }}</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </li>
+              <li class="profile-nav onhover-dropdown"> 
+                <div class="media profile-media">
+                  {% if user.profile.photo %}
+                    <img class="b-r-10" src="{{ user.profile.photo.url }}" alt="{{ user.get_full_name|default:user.username }}">
+                  {% else %}
+                    <div class="avatar-placeholder b-r-10" style="width: 40px; height: 40px; background-color: #f0f0f0; border-radius: 5px; display: flex; align-items: center; justify-content: center;">
+                      <span style="font-size: 18px;">{{ user.get_full_name|default:user.username|first|upper }}</span>
+                    </div>
+                  {% endif %}
+                  <div class="media-body d-xxl-block d-none box-col-none">
+                    <div class="d-flex align-items-center gap-2">
+                      <span>{{ user.get_full_name|default:user.username }}</span>
+                      <i class="middle fa fa-angle-down"></i>
+                    </div>
+                    <p class="mb-0 font-roboto">
+                      {% if user.is_superuser %}Admin{% elif user.is_staff %}Staff{% else %}User{% endif %}
+                    </p>
+                  </div>
+                </div>
+                <ul class="profile-dropdown onhover-show-div">
+                  <li><a href="{% url 'tracker:profile' %}"><i data-feather="user"></i><span>My Profile</span></a></li>
+           
+                  <li>
+                    <form action="{% url 'tracker:logout' %}" method="post" style="display: inline;">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-pill btn-outline-primary btn-sm" style="border: none; background: none; padding: 0; cursor: pointer; color: inherit;">
+                        <i data-feather="log-out"></i> Log Out
+                      </button>
+                    </form>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <script class="result-template" type="text/x-handlebars-template">
+            <div class="ProfileCard u-cf">                        
+            <div class="ProfileCard-avatar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-airplay m-0"><path d="M5 17H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1"></path><polygon points="12 15 17 21 7 21 12 15"></polygon></svg></div>
+            <div class="ProfileCard-details"> 
+            <div class="ProfileCard-realName">{{name}}</div>
+            </div> 
+            </div>
+          </script>
+          <script class="empty-template" type="text/x-handlebars-template"><div class="EmptyMessage">Your search turned up 0 results. This most likely means the backend is down, yikes!</div></script>
+        </div>
+      </div>
+      <!-- Page Header Ends                              -->
+      <!-- Page Body Start-->
+      <div class="page-body-wrapper">
+      <!-- Page Sidebar Start-->
+        <div class="sidebar-wrapper" data-layout="stroke-svg">
+          <div class="logo-wrapper"><a href="{% url 'tracker:dashboard' %}"><img class="img-fluid" src="{% static 'image/stm_logo.png' %}" alt="Logo" style="max-height: 40px;"></a>
+            <div class="back-btn"><i class="fa fa-angle-left"> </i></div>
+            <div class="toggle-sidebar"><i class="status_toggle middle sidebar-toggle" data-feather="grid"> </i></div>
+          </div>
+          <div class="logo-icon-wrapper"><a href="{% url 'tracker:dashboard' %}"><img class="img-fluid" src="{% static 'image/stm_logo.png' %}" alt="Logo" style="max-height: 30px;"></a></div>
+          <nav class="sidebar-main">
+            <div class="left-arrow" id="left-arrow"><i data-feather="arrow-left"></i></div>
+            <div id="sidebar-menu">
+              <ul class="sidebar-links" id="simple-bar">
+                <li class="back-btn"><a href="{% url 'tracker:dashboard' %}"><img class="img-fluid" src="../assets/images/logo/logo-icon.png" alt=""></a>
+                  <div class="mobile-back text-end"> <span>Back </span><i class="fa fa-angle-right ps-2" aria-hidden="true"></i></div>
+                </li>
+                <li class="pin-title sidebar-main-title">
+                  <div>
+                    <h6>Pinned</h6>
+                  </div>
+                </li>
+                <!-- Dashboard -->
+                <li class="sidebar-list">
+                  <i class="fa fa-thumb-tack"></i>
+                  <a class="sidebar-link sidebar-title" href="{% url 'tracker:dashboard' %}">
+                    <svg class="stroke-icon">
+                      <use href="../assets/svg/icon-sprite.svg#stroke-home"></use>
+                    </svg>
+                    <svg class="fill-icon">
+                      <use href="../assets/svg/icon-sprite.svg#fill-home"></use>
+                    </svg>
+                    <span>Dashboard</span>
+                  </a>
+                </li>
+
+                <!-- Customers -->
+                <li class="sidebar-list">
+                  <i class="fa fa-thumb-tack"></i>
+                  <a class="sidebar-link sidebar-title" href="#">
+                    <svg class="stroke-icon">
+                      <use href="../assets/svg/icon-sprite.svg#stroke-user"></use>
+                    </svg>
+                    <svg class="fill-icon">
+                      <use href="../assets/svg/icon-sprite.svg#fill-user"></use>
+                    </svg>
+                    <span>Customers</span>
+                  </a>
+                  <ul class="sidebar-submenu">
+                    <li><a href="{% url 'tracker:customers_list' %}">All Customers</a></li>
+                    <li><a href="{% url 'tracker:customer_register' %}">Register Customer</a></li>
+                    <li><a href="{% url 'tracker:customer_groups' %}">Customer Groups</a></li>
+                
+                  </ul>
+                </li>
+
+                <!-- Orders -->
+                <li class="sidebar-list">
+                  <i class="fa fa-thumb-tack"></i>
+                  <a class="sidebar-link sidebar-title" href="#">
+                    <svg class="stroke-icon">
+                      <use href="../assets/svg/icon-sprite.svg#stroke-project"></use>
+                    </svg>
+                    <svg class="fill-icon">
+                      <use href="../assets/svg/icon-sprite.svg#fill-project"></use>
+                    </svg>
+                    <span>Orders</span>
+                  </a>
+                  <ul class="sidebar-submenu">
+                    <li><a href="{% url 'tracker:orders_list' %}">All Orders</a></li>
+               
+               
+                    <li><a href="{% url 'tracker:inquiries' %}">Inquiries</a></li>
+                  </ul>
+                </li>
+
+                <!-- Analytics -->
+                <li class="sidebar-list">
+                  <i class="fa fa-thumb-tack"></i>
+                  <a class="sidebar-link sidebar-title" href="#">
+                    <svg class="stroke-icon">
+                      <use href="../assets/svg/icon-sprite.svg#stroke-charts"></use>
+                    </svg>
+                    <svg class="fill-icon">
+                      <use href="../assets/svg/icon-sprite.svg#fill-charts"></use>
+                    </svg>
+                    <span>Analytics</span>
+                  </a>
+                  <ul class="sidebar-submenu">
+                    <li><a href="{% url 'tracker:analytics' %}">Overview</a></li>
+                    <li><a href="{% url 'tracker:analytics_customer' %}">Customer Analytics</a></li>
+                    <li><a href="{% url 'tracker:analytics_service' %}">Service Analytics</a></li>
+
+    
+                  </ul>
+                </li>
+
+              
+
+                <!-- Reports -->
+                <li class="sidebar-list">
+                  <i class="fa fa-thumb-tack"></i>
+                  <a class="sidebar-link sidebar-title" href="#">
+                    <svg class="stroke-icon">
+                      <use href="../assets/svg/icon-sprite.svg#stroke-board"></use>
+                    </svg>
+                    <svg class="fill-icon">
+                      <use href="../assets/svg/icon-sprite.svg#fill-board"></use>
+                    </svg>
+                    <span>Reports</span>
+                  </a>
+                  <ul class="sidebar-submenu">
+                    <li><a href="{% url 'tracker:reports' %}?period=daily">Daily Report</a></li>
+                    <li><a href="{% url 'tracker:reports' %}?period=weekly">Weekly Report</a></li>
+                    <li><a href="{% url 'tracker:reports' %}?period=monthly">Monthly Report</a></li>
+                    <li><a href="{% url 'tracker:reports' %}?period=yearly">Yearly Report</a></li>
+
+                  </ul>
+                </li>
+                   <!-- Inventory - Only for admin users -->
+                   {% if user.is_superuser or user.is_staff %}
+                   <li class="sidebar-list">
+                    <i class="fa fa-thumb-tack"></i>
+                    <a class="sidebar-link sidebar-title" href="#">
+                      <svg class="stroke-icon">
+                        <use href="../assets/svg/icon-sprite.svg#stroke-board"></use>
+                      </svg>
+                      <svg class="fill-icon">
+                        <use href="../assets/svg/icon-sprite.svg#fill-board"></use>
+                      </svg>
+                      <span>Inventory</span>
+                    </a>
+                    <ul class="sidebar-submenu">
+                      <li><a href="{% url 'tracker:inventory_list' %}">All Items</a></li>
+                      <li><a href="{% url 'tracker:inventory_stock_management' %}">Stock Management</a></li>
+                    </ul>
+                  </li>
+                   {% endif %}
+
+                <!-- System Management - Only for admin users -->
+                {% if user.is_superuser %}
+                <li class="sidebar-list">
+                  <i class="fa fa-thumb-tack"></i>
+                  <a class="sidebar-link sidebar-title" href="#">
+                    <svg class="stroke-icon">
+                      <use href="../assets/svg/icon-sprite.svg#stroke-settings"></use>
+                    </svg>
+                    <svg class="fill-icon">
+                      <use href="../assets/svg/icon-sprite.svg#fill-settings"></use>
+                    </svg>
+                    <span>System</span>
+                  </a>
+                  <ul class="sidebar-submenu">
+                    <li><a href="{% url 'tracker:users_list' %}">User Management</a></li>
+                    <li><a href="{% url 'tracker:system_settings' %}">System Settings</a></li>
+                    <li><a href="{% url 'tracker:audit_logs' %}">Audit Logs</a></li>
+               
+                  </ul>
+                </li>
+                {% endif %}
+
+              <div class="right-arrow" id="right-arrow"><i data-feather="arrow-right"></i></div>
+            </div>
+          </nav>
+        </div>
+        <!-- Page Sidebar Ends-->
+        <div class="page-body"> 
+          <div class="container-fluid">            
+            <div class="page-title"> 
+              <div class="row">
+                <div class="col-6">
+                  <h4>
+                     POS Tracker</h4>
+                </div>
+                <div class="col-6"> 
+                  <ol class="breadcrumb"> 
+                    <li class="breadcrumb-item"> <a href="index.html">
+                        <svg class="stroke-icon">
+                          <use href="../assets/svg/icon-sprite.svg#stroke-home"></use>
+                        </svg></a></li>
+                    <li class="breadcrumb-item">Dashboard </li>
+                    <li class="breadcrumb-item active">POS Tracker</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Container-fluid starts -->
+          <div class="container-fluid">
+            <!-- First Row: Key Performance Indicators -->
+            <div class="row">
+     
+              <!-- Active Customers -->
+              <div class="col-xxl-3 col-sm-6">
+                <div class="card h-100">
+                  <div class="card-body">
+                    <div class="d-flex align-items-center">
+                      <div class="dashboard-icon bg-success-light">
+                        <i data-feather="users"></i>
+                      </div>
+                      <div class="ms-3">
+                        <h6 class="mb-1">TOTAL CUSTOMER</h6>
+                        <h3 class="f-w-600 mb-0">{{ total_customers }}</h3>
+                        <p class="mb-0 text-muted">{{ new_customers_this_month|default:0 }} new this month</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+                <!-- Total Orders -->
+              <div class="col-xxl-3 col-sm-6">
+                <div class="card h-100">
+                  <div class="card-body">
+                    <div class="d-flex align-items-center">
+                      <div class="dashboard-icon bg-warning-light">
+                        <i data-feather="shopping-bag"></i>
+                      </div>
+                      <div class="ms-3">
+                        <h6 class="mb-1">TOTAL ORDER</h6>
+                        <h3 class="f-w-600 mb-0">{{ total_orders }}</h3>
+                        <p class="mb-0 text-muted">{{ completed_orders|default:0 }} completed ({{ completion_rate|floatformat:0 }}%)</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Average Order Value -->
+              <div class="col-xxl-3 col-sm-6">
+                <div class="card h-100">
+                  <div class="card-body">
+                    <div class="d-flex align-items-center">
+                      <div class="dashboard-icon bg-info-light">
+                        <i data-feather="dollar-sign"></i>
+                      </div>
+                      <div class="ms-3">
+                        <h6 class="mb-1">Completed Today</h6>
+                        <h3 class="f-w-600 mb-0">{{ completed_today|default:0 }}</h3>
+                        <p class="mb-0 text-muted">as of {{ current_time|time:"h:i A" }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Second Row: Service Metrics -->
+            <div class="row mt-4">
+              <!-- Service Distribution -->
+              <div class="col-xxl-4 col-md-6">
+                <div class="card h-100">
+                  <div class="card-header">
+                    <h5>Service Distribution</h5>
+                  </div>
+                  <div class="card-body">
+                    <div id="serviceDistributionChart"></div>
+                    <div class="text-center mt-3">
+                      <a href="{% url 'tracker:analytics_service' %}" class="btn btn-sm btn-outline-primary">View Details</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Order Status -->
+              <div class="col-xxl-4 col-md-6">
+                <div class="card h-100">
+                  <div class="card-header">
+                    <h5>Order Status</h5>
+                  </div>
+                  <div class="card-body">
+                    <div id="orderStatusChart"></div>
+                    <div class="mt-3">
+                      {% with completed_percent=status_percentages.completed_percent|floatformat:0 %}
+                      {% with in_progress_percent=status_percentages.in_progress_percent|floatformat:0 %}
+                      {% with pending_percent=status_percentages.pending_percent|floatformat:0 %}
+                        <div class="progress-container">
+                          <div class="progress-label">
+                            <span>Completed</span>
+                            <span>{{ status_counts.completed|default:0 }} ({{ completed_percent }}%)</span>
+                          </div>
+                          <div class="progress dashboard-progress">
+                            <div class="progress-bar completed"
+                              role="progressbar"
+                              data-width="{{ completed_percent }}"
+                              aria-valuenow="{{ status_counts.completed|default:0 }}"
+                              aria-valuemin="0"
+                              aria-valuemax="{{ total_orders }}"></div>
+                          </div>
+                        </div>
+                        
+                        <div class="progress-container">
+                          <div class="progress-label">
+                            <span>In Progress</span>
+                            <span>{{ status_counts.in_progress|default:0 }} ({{ in_progress_percent }}%)</span>
+                          </div>
+                          <div class="progress dashboard-progress">
+                            <div class="progress-bar in-progress"
+                              role="progressbar"
+                              data-width="{{ in_progress_percent }}"
+                              aria-valuenow="{{ status_counts.in_progress|default:0 }}"
+                              aria-valuemin="0"
+                              aria-valuemax="{{ total_orders }}"></div>
+                          </div>
+                        </div>
+                        
+                        <div class="progress-container">
+                          <div class="progress-label">
+                            <span>Pending</span>
+                            <span>{{ status_counts.pending|default:0 }} ({{ pending_percent }}%)</span>
+                          </div>
+                          <div class="progress dashboard-progress">
+                            <div class="progress-bar pending"
+                              role="progressbar"
+                              data-width="{{ pending_percent }}"
+                              aria-valuenow="{{ status_counts.pending|default:0 }}"
+                              aria-valuemin="0"
+                              aria-valuemax="{{ total_orders }}"></div>
+                          </div>
+                        </div>
+                        
+                        <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                          // Initialize progress bars
+                          document.querySelectorAll('.progress-bar[data-width]').forEach(function(bar) {
+                            const width = bar.dataset.width;
+                            bar.style.width = width + '%';
+                            bar.setAttribute('aria-valuenow', width);
+                            
+                            // Add animation classes
+                            bar.classList.add('animate__animated', 'animate__fadeIn');
+                            
+                            // Trigger reflow to restart animation
+                            void bar.offsetWidth;
+                          });
+                          
+                          // Add hover effects
+                          const progressBars = document.querySelectorAll('.progress-bar');
+                          progressBars.forEach(bar => {
+                            bar.addEventListener('mouseenter', function() {
+                              this.classList.add('animate__pulse');
+                            });
+                            bar.addEventListener('mouseleave', function() {
+                              this.classList.remove('animate__pulse');
+                            });
+                          });
+                        });
+                        </script>
+                        
+                        <!-- Animate.css for additional animations -->
+                        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+                      {% endwith %}
+                      {% endwith %}
+                      {% endwith %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Quick Actions -->
+          
+            </div>
+            
+            <!-- Third Row: Top Customers -->
+            <div class="col-12">
+              <div class="card h-100">
+                <div class="card-header card-no-border">
+                  <h4>Top Customers by Orders</h4>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="update-data d-none d-md-block f-light">Top customers by order volume</span>
+                    <a href="{% url 'tracker:customers_list' %}?sort=-order_count" class="ms-auto btn btn-outline-primary btn-sm">
+                      View All <i class="fa fa-arrow-right ms-1"></i>
+                    </a>
+                  </div>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table table-hover table-borderless">
+                      <thead class="bg-light">
+                        <tr>
+                          <th class="ps-4">#</th>
+                          <th>Customer</th>
+                          <th>Contact</th>
+                          <th>Total Orders</th>
+                          <th>Last Order</th>
+                          <th>Total Spent</th>
+                          <th class="text-end pe-4">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for customer in top_customers %}
+                        <tr class="border-bottom">
+                          <td class="ps-4 fw-600">{{ forloop.counter }}</td>
+                          <td>
+                            <div class="d-flex align-items-center">
+                              <div class="avatar me-2">
+                                {% if customer.photo %}
+                                <img class="rounded-circle" src="{{ customer.photo.url }}" alt="" width="32" height="32">
+                                {% else %}
+                                <div class="avatar-initial bg-soft-{% cycle 'primary' 'success' 'warning' 'danger' 'info' %} rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                  <span class="text-{% cycle 'primary' 'success' 'warning' 'danger' 'info' %} fw-600">
+                                    {{ customer.full_name|slice:":1"|upper }}
+                                  </span>
+                                </div>
+                                {% endif %}
+                              </div>
+                              <div class="fw-600">{{ customer.full_name|default:'Unknown' }}</div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="d-flex flex-column">
+                              {% if customer.phone %}
+                              <a href="tel:{{ customer.phone }}" class="text-muted small">{{ customer.phone }}</a>
+                              {% endif %}
+                              {% if customer.email %}
+                              <a href="mailto:{{ customer.email }}" class="text-muted small text-truncate" style="max-width: 150px;" title="{{ customer.email }}">
+                                {{ customer.email }}
+                              </a>
+                              {% endif %}
+                            </div>
+                          </td>
+                          <td class="fw-600">{{ customer.order_count }} order{{ customer.order_count|pluralize }}</td>
+                          <td>
+                            {% if customer.latest_order_date %}
+                            <span class="fw-600">{{ customer.latest_order_date|date:"M d, Y" }}</span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                          </td>
+                          <td class="fw-600">
+                            {% if customer.total_spent %}
+                            ${{ customer.total_spent|floatformat:2 }}
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                          </td>
+                          <td class="text-end pe-4">
+                            <div class="d-flex justify-content-end gap-2">
+                              {% if customer.id %}
+                              <a href="{% url 'tracker:customer_detail' customer.id %}" class="btn btn-outline-primary btn-sm px-2">
+                                View
+                              </a>
+                              <a href="{% url 'tracker:create_order_for_customer' customer.id %}" class="btn btn-outline-success btn-sm px-2">
+                                New Order
+                              </a>
+                              {% else %}
+                              <span class="text-muted small">No actions available</span>
+                              {% endif %}
+                            </div>
+                          </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                          <td colspan="7" class="text-center py-4">
+                            <div class="d-flex flex-column align-items-center">
+                              <i class="fa fa-users fa-2x text-muted mb-2"></i>
+                              <span class="text-muted">No customer data available</span>
+                            </div>
+                          </td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fourth Row: Recent Orders -->
+            <div class="col-12">
+              <div class="card h-100">
+                <div class="card-header card-no-border">
+                  <h4>Recent Orders</h4>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="update-data d-none d-md-block f-light">Latest 10 orders</span>
+                    <a href="{% url 'tracker:orders_list' %}" class="ms-auto btn btn-outline-primary btn-sm">
+                      View All <i class="fa fa-arrow-right ms-1"></i>
+                    </a>
+                  </div>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive custom-scrollbar" style="max-height: 400px;">
+                    <table class="table table-hover table-borderless">
+                      <thead class="bg-light">
+                        <tr>
+                          <th class="ps-4">Order #</th>
+                          <th>Customer</th>
+                          <th>Type</th>
+                          <th>Amount</th>
+                          <th>Status</th>
+                          <th class="text-end pe-4">Date</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for order in recent_orders %}
+                        <tr class="border-bottom">
+                          <td class="ps-4">
+                            <a href="{% url 'tracker:order_detail' order.id %}" class="text-primary fw-600">#{{ order.id|stringformat:"06d" }}</a>
+                          </td>
+                          <td>
+                            <div class="d-flex align-items-center">
+                              <div class="avatar me-2">
+                                {% if order.customer and order.customer.photo %}
+                                <img class="rounded-circle" src="{{ order.customer.photo.url }}" alt="" width="32" height="32">
+                                {% else %}
+                                <div class="avatar-initial bg-soft-{% cycle 'primary' 'success' 'warning' 'danger' 'info' %} rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                  <span class="text-{% cycle 'primary' 'success' 'warning' 'danger' 'info' %} fw-600">
+                                    {{ order.customer.full_name|default:'W'|slice:":1"|upper }}
+                                  </span>
+                                </div>
+                                {% endif %}
+                              </div>
+                              <div>
+                                <div class="fw-600">{{ order.customer.full_name|default:'Walk-in Customer' }}</div>
+                                <div class="small text-muted">{{ order.customer.phone|default:'' }}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <span class="badge bg-soft-{% if order.type == 'tire' %}primary{% elif order.type == 'service' %}success{% else %}secondary{% endif %} text-{% if order.type == 'tire' %}primary{% elif order.type == 'service' %}success{% else %}secondary{% endif %}">
+                              <i class="fa fa-{% if order.type == 'tire' %}tire-rugged{% elif order.type == 'service' %}tools{% else %}shopping-cart{% endif %} me-1"></i>
+                              {{ order.get_type_display }}
+                            </span>
+                          </td>
+                          <td class="fw-600">
+                            {% if order.total_amount %}
+                            ${{ order.total_amount|floatformat:2 }}
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                          </td>
+                          <td>
+                            <span class="badge bg-soft-{% if order.status == 'completed' %}success{% elif order.status == 'in_progress' %}warning{% elif order.status == 'pending' %}info{% else %}secondary{% endif %} text-{% if order.status == 'completed' %}success{% elif order.status == 'in_progress' %}warning{% elif order.status == 'pending' %}info{% else %}secondary{% endif %} p-2">
+                              <i class="fa fa-{% if order.status == 'completed' %}check-circle{% elif order.status == 'in_progress' %}spinner fa-spin{% elif order.status == 'pending' %}clock{% else %}ellipsis-h{% endif %} me-1"></i>
+                              {{ order.get_status_display }}
+                            </span>
+                          </td>
+                          <td class="text-end pe-4">
+                            <div class="d-flex flex-column">
+                              <span class="fw-600">{{ order.created_at|date:"M d, Y" }}</span>
+                              <span class="small text-muted">{{ order.created_at|time:"h:i A" }}</span>
+                            </div>
+                          </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                          <td colspan="6" class="text-center py-4">
+                            <div class="d-flex flex-column align-items-center">
+                              <i class="fa fa-inbox fa-2x text-muted mb-2"></i>
+                              <span class="text-muted">No recent orders found</span>
+                            </div>
+                          </td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+            <!-- Quick Actions (Moved to Bottom) -->
+            <!-- <div class="col-12">
+              <div class="card mt-4">
+                <div class="card-header card-no-border">
+                  <h4>Quick Actions</h4>
+                </div>
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-sm-6 col-md-4 col-lg-2">
+                      <a href="{% url 'tracker:customer_register' %}" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                        <i class="fa fa-user-plus fa-2x mb-2"></i>
+                        <span>New Customer</span>
+                      </a>
+                    </div>
+                    <div class="col-sm-6 col-md-4 col-lg-2">
+                      <a href="{% url 'tracker:orders_list' %}" class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                        <i class="fa fa-plus-circle fa-2x mb-2"></i>
+                        <span>New Order</span>
+                      </a>
+                    </div>
+                    <div class="col-sm-6 col-md-4 col-lg-2">
+                      <a href="{% url 'tracker:inventory_list' %}" class="btn btn-outline-info w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                        <i class="fa fa-boxes fa-2x mb-2"></i>
+                        <span>Inventory</span>
+                      </a>
+                    </div>
+                    <div class="col-sm-6 col-md-4 col-lg-2">
+                      <a href="{% url 'tracker:reports' %}" class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                        <i class="fa fa-chart-bar fa-2x mb-2"></i>
+                        <span>Reports</span>
+                      </a>
+                    </div>
+                    <div class="col-sm-6 col-md-4 col-lg-2">
+                      <a href="{% url 'tracker:analytics' %}" class="btn btn-outline-danger w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                        <i class="fa fa-chart-line fa-2x mb-2"></i>
+                        <span>Analytics</span>
+                      </a>
+                    </div>
+                    <div class="col-sm-6 col-md-4 col-lg-2">
+                      <a href="{% url 'tracker:inquiries' %}" class="btn btn-outline-secondary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                        <i class="fa fa-question-circle fa-2x mb-2"></i>
+                        <span>Inquiries</span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div> -->
+          </div>
+          <!-- Container-fluid Ends -->
+        </div>
+
+
+
+
+        <!-- footer start-->
+        <footer class="footer">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col-md-12 footer-copyright text-center">
+                <p class="mb-0">Copyright 2025 © Superdoll.innovation Team </p>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </div>
+    <!-- latest jquery-->
+    <script src="{% static 'assets/js/jquery.min.js' %}"></script>
+    <!-- Bootstrap js-->
+    <script src="{% static 'assets/js/bootstrap/bootstrap.bundle.min.js' %}"></script>
+    <!-- feather icon js-->
+    <script src="{% static 'assets/js/icons/feather-icon/feather.min.js' %}"></script>
+    <script src="{% static 'assets/js/icons/feather-icon/feather-icon.js' %}"></script>
+    <!-- scrollbar js-->
+    <script src="{% static 'assets/js/scrollbar/simplebar.js' %}"></script>
+    <script src="{% static 'assets/js/scrollbar/custom.js' %}"></script>
+    <!-- Sidebar jquery-->
+    <script src="{% static 'assets/js/config.js' %}"></script>
+    <!-- Plugins JS start-->
+    <script src="{% static 'assets/js/sidebar-menu.js' %}"></script>
+    <script src="{% static 'assets/js/sidebar-pin.js' %}"></script>
+    <script src="{% static 'assets/js/slick/slick.min.js' %}"></script>
+    <script src="{% static 'assets/js/slick/slick.js' %}"></script>
+    <script src="{% static 'assets/js/header-slick.js' %}"></script>
+    <script src="{% static 'assets/js/chart/apex-chart/apex-chart.js' %}"></script>
+    <script src="{% static 'assets/js/chart/apex-chart/stock-prices.js' %}"></script>
+    <script src="{% static 'assets/js/chart/apex-chart/moment.min.js' %}"></script>
+    <script src="{% static 'assets/js/notify/bootstrap-notify.min.js' %}"></script>
+    <!-- calendar js-->
+
+    <script src="{% static 'assets/js/notify/index.js' %}"></script>
+    <script src="{% static 'assets/js/typeahead/handlebars.js' %}"></script>
+    <script src="{% static 'assets/js/typeahead/typeahead.bundle.js' %}"></script>
+    <script src="{% static 'assets/js/typeahead/typeahead.custom.js' %}"></script>
+    <script src="{% static 'assets/js/typeahead-search/handlebars.js' %}"></script>
+    <script src="{% static 'assets/js/typeahead-search/typeahead-custom.js' %}"></script>
+    <script src="{% static 'assets/js/height-equal.js' %}"></script>
+    <script src="{% static 'assets/js/animation/wow/wow.min.js' %}"></script>
+    <!-- Plugins JS Ends-->
+    <!-- Theme js-->
+    <script src="{% static 'assets/js/script.js' %}"></script>
+  
+    <style>
+      /* Ensure equal widths/heights and consistent chart containers for Total Store and Total Order */
+      .total-revenue-total-order .card .total-chart .total-revenue-chart { min-height: 140px; }
+      .total-revenue-total-order .card .total-chart .total-revenue-chart > div { height: 120px !important; }
+    </style>
+    <script>new WOW().init();</script>
+    <script>
+      (function(){
+        try {
+          // Sales area chart with dynamic period switching
+          var salesPeriods = {{ sales_chart_periods_json|safe }};
+          var currentPeriod = 'last_year';
+          var salesEl = document.querySelector('#saleschart');
+          var salesChart;
+          function renderSales(period){
+            if (!salesEl || !salesPeriods || !salesPeriods[period]) return;
+            var data = salesPeriods[period];
+            salesEl.innerHTML = '';
+            var options = {
+              series: [
+                { name: 'Orders', data: data.total },
+                { name: 'Completed', data: data.completed }
+              ],
+              chart:{ type:'area', height:280, toolbar:{ show:false }},
+              colors:['#4361ee','#22c55e'],
+              dataLabels:{enabled:false},
+              stroke:{curve:'smooth', width:2},
+              xaxis:{ categories: data.labels, labels:{ style:{ colors: Array(data.labels.length).fill('var(--body-font-color)') } }, axisTicks:{show:false}, axisBorder:{show:false}},
+              grid:{strokeDashArray:5},
+              fill:{gradient:{opacityFrom:0.45, opacityTo:0.05, shadeIntensity:0.15}}
+            };
+            try { if (salesChart) salesChart.destroy(); } catch(e){}
+            salesChart = new ApexCharts(salesEl, options);
+            salesChart.render();
+          }
+          renderSales(currentPeriod);
+          // Hook dropdown
+          var dd = document.getElementById('salesPeriodDropdown');
+          var menu = dd ? dd.parentElement.querySelector('.dropdown-menu') : null;
+          // restore from URL or localStorage
+          var urlParams = new URLSearchParams(window.location.search);
+          var saved = urlParams.get('period') || (window.localStorage ? localStorage.getItem('salesPeriod') : null);
+          if (saved && salesPeriods[saved]) {
+            currentPeriod = saved;
+          }
+          function updateDDText(p){
+            if (!dd || !menu) return;
+            var item = menu.querySelector('[data-period="'+p+'"]');
+            if (item) dd.textContent = item.textContent;
+          }
+          updateDDText(currentPeriod);
+          renderSales(currentPeriod);
+          if (menu){
+            menu.querySelectorAll('.dropdown-item').forEach(function(item){
+              item.addEventListener('click', function(){
+                var p = this.getAttribute('data-period');
+                if (!p) return;
+                currentPeriod = p;
+                dd.textContent = this.textContent;
+                // persist to URL and localStorage
+                try { if (window.localStorage) localStorage.setItem('salesPeriod', p); } catch(e){}
+                var usp = new URLSearchParams(window.location.search);
+                usp.set('period', p);
+                var newUrl = window.location.pathname + '?' + usp.toString();
+                window.history.replaceState({}, '', newUrl);
+                renderSales(currentPeriod);
+              });
+            });
+          }
+
+          // Total Orders mini area chart: daily last 8 days total vs completed
+          var spark = {{ total_order_spark_json|safe }};
+          var totalOrderEl = document.querySelector('#totalOrder');
+          if (totalOrderEl && spark && spark.labels) {
+            totalOrderEl.innerHTML = '';
+            var sparkOptions = {
+              series: [{ name: 'Orders', data: spark.total }, { name: 'Completed', data: spark.completed }],
+              fill: { gradient:{ opacityFrom:0.45, opacityTo:0.05, shadeIntensity:0.15 } },
+              colors:['#4361ee', '#94a3b8'],
+              chart:{ height:120, type:'area', offsetY:-17, toolbar:{ show:false } },
+              dataLabels:{ enabled:false }, stroke:{ curve:'smooth', width:1.5, dashArray:[0,4] }, xaxis:{ labels:{ show:false }, axisTicks:{ show:false }, lines:{ show:false } }, grid:{ show:false }, yaxis:{ show:false }, legend:{ show:false }, tooltip:{ x:{ format:'dd/MM/yy HH:mm' } }, responsive:[{ breakpoint:1499, options:{ chart:{ width:140 } } }]
+            };
+            new ApexCharts(totalOrderEl, sparkOptions).render();
+          }
+
+          // Replace Top Revenue Product with Top Orders by Customers (donut)
+          var topOrders = {{ top_orders_json|safe }};
+          var donutEl = document.querySelector("#revenueproduct");
+          var legendEl = document.querySelector("#topOrdersLegend");
+          var donutChart;
+          function renderLegend(labels, colors){
+            if (!legendEl) return;
+            legendEl.innerHTML = labels.map(function(label, i){
+              var color = (colors && colors[i]) || ['var(--theme-secondary)','#80b3b3','var(--theme-deafult)','#FFAE1A','#6c757d'][i % 5];
+              return '<li><span class="circle" style="background:'+color+'"></span><span class="f-light ms-1">'+label+'</span></li>';
+            }).join('');
+          }
+          function renderDonut(period){
+            if (!donutEl || !topOrders[period]) return;
+            donutEl.innerHTML = '';
+            var data = topOrders[period];
+            var options = { series: data.values, labels: data.labels, chart:{ type:'donut', height:240 }, stroke:{ width:0 }, colors:['#0ea5e9','#22c55e','#f59e0b','#ef4444','#64748b'], dataLabels:{enabled:false}, legend:{ show:false }, plotOptions:{ pie:{ donut:{ size:'80%', labels:{ show:true, total:{ show:true, label:'Total', color:'#64748b', formatter:function(w){ return w.globals.seriesTotals.reduce(function(a,b){return a+b},0); } }}}}} };
+            if (donutChart) { try { donutChart.destroy(); } catch(e){} }
+            donutChart = new ApexCharts(donutEl, options); donutChart.render();
+            renderLegend(data.labels, options.colors);
+          }
+          var dropdown = document.getElementById('dropdownMenuButtonup');
+          var menu = dropdown ? dropdown.parentElement.querySelector('.dropdown-menu') : null;
+          if (menu) {
+            menu.querySelectorAll('.dropdown-item').forEach(function(item){
+              item.addEventListener('click', function(){
+                var p = this.getAttribute('data-period');
+                if (!p) return;
+                dropdown.textContent = this.textContent;
+                renderDonut(p);
+              });
+            });
+          }
+          renderDonut('today');
+
+          // Small bar chart (#revenue) using monthly completed vs total to preserve look
+          var revenueEl = document.querySelector('#revenue');
+          if (revenueEl && sales && sales.labels) {
+            revenueEl.innerHTML = '';
+            var revOptions = {
+              series: [{ name:'Completed', data: sales.completed.slice(-12) }, { name:'Orders', data: sales.total.slice(-12) }],
+              colors:[RihoAdminConfig.primary, '#E6E9EB'],
+              chart:{ type:'bar', height:120, width:145, offsetY:-20, zoom:{ enabled:false }, toolbar:{ show:false } },
+              plotOptions:{ bar:{ horizontal:false, columnWidth:'77%', endingShape:'rounded', borderRadius:1 } },
+              grid:{ show:false, padding:{ top:0,right:0,bottom:0,left:0 }, margin:{ top:0,right:0,bottom:0,left:0 } },
+              dataLabels:{ enabled:false }, stroke:{ show:true, width:2, colors:['transparent'] }, legend:{ show:false }, xaxis:{ labels:{ show:false }, axisTicks:{ show:false } }, yaxis:{ show:false }, fill:{ opacity:1 }, responsive:[{ breakpoint:1599, options:{ chart:{ width:140 } } }]
+            };
+            new ApexCharts(revenueEl, revOptions).render();
+          }
+        } catch(e) { }
+      })();
+    </script>
+
+    <!-- Lightweight notification updater for dashboard (no external deps) -->
+    <script>
+      (function(){
+        function ensureBadge(){
+          var box = document.querySelector('.notification-box');
+          if(!box) return null;
+          var b = box.querySelector('.badge');
+          if(!b){
+            b = document.createElement('span');
+            b.className = 'badge rounded-pill badge-secondary';
+            b.style.display = 'none';
+            b.textContent = '0';
+            box.appendChild(b);
+          }
+          return b;
+        }
+        function updateDropdownCounts(counts){
+          var items = document.querySelectorAll('.notification-dropdown .list-group-item');
+          if(items && items.length >= 3){
+            var todayBadge = items[0].querySelector('.badge');
+            var lowBadge = items[1].querySelector('.badge');
+            var overdueBadge = items[2].querySelector('.badge');
+            if(todayBadge){ todayBadge.textContent = counts.today_visitors || 0; todayBadge.style.display = counts.today_visitors > 0 ? 'inline-flex' : 'none'; }
+            if(lowBadge){ lowBadge.textContent = counts.low_stock || 0; lowBadge.style.display = counts.low_stock > 0 ? 'inline-flex' : 'none'; }
+            if(overdueBadge){ overdueBadge.textContent = counts.overdue_orders || 0; overdueBadge.style.display = counts.overdue_orders > 0 ? 'inline-flex' : 'none'; }
+          }
+        }
+        function render(data){
+          var total = (data.counts && (data.counts.today_visitors + data.counts.low_stock + data.counts.overdue_orders)) || 0;
+          var badge = ensureBadge();
+          if(badge){
+            if(total > 0){ badge.textContent = total; badge.style.display = 'inline-block'; }
+            else { badge.style.display = 'none'; }
+          }
+          if(data.counts){ updateDropdownCounts(data.counts); }
+        }
+        function load(){
+          fetch('/api/notifications/summary/')
+            .then(function(r){ return r.json(); })
+            .then(function(j){ if(j && j.success) render(j); })
+            .catch(function(){ /* silent */ });
+        }
+        document.addEventListener('DOMContentLoaded', function(){
+          load();
+          setInterval(load, 60000);
+        });
+      })();
+      <script src="{% static 'assets/js/hide-demo-items.js' %}"></script>
+    </script>
+  </body>
+</html>

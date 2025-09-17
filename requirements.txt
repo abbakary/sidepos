@@ -1,0 +1,8 @@
+Django>=5.0,<6
+dj-database-url>=2.0.0
+python-dotenv>=1.0.0
+gunicorn>=21.0.0
+whitenoise>=6.5.0
+psycopg2-binary>=2.9.9
+Pillow>=10.0.0
+mysqlclient>=2.2.0  # Keep this if you still need MySQL support locally

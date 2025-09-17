@@ -1,0 +1,132 @@
+{% extends 'tracker/base.html' %}
+{% load static %}
+
+{% block title %}Customers{% endblock %}
+
+{% block content %}
+  <div class="container-fluid">
+    <div class="page-title">
+      <div class="row">
+        <div class="col-6"><h4>Customers</h4></div>
+        <div class="col-6">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'tracker:dashboard' %}">Home</a></li>
+            <li class="breadcrumb-item active">Customers</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container-fluid">
+    <div class="row g-3 align-items-end mb-3">
+      <div class="col-md-8">
+        <form class="row g-2" method="get" action="">
+          <div class="col-sm-6">
+            <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search by name, phone, email, code">
+          </div>
+          <div class="col-sm-3">
+            <select name="type" class="form-select">
+              <option value="">All types</option>
+              <option value="personal">Personal</option>
+              <option value="company">Private Company</option>
+              <option value="government">Government</option>
+              <option value="ngo">NGO</option>
+              <option value="bodaboda">Bodaboda</option>
+            </select>
+          </div>
+          <div class="col-sm-3">
+            <select name="status" class="form-select">
+              <option value="">Any status</option>
+              <option value="active">Active today</option>
+              <option value="returning">Returning</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="col-auto"><button class="btn btn-primary" type="submit">Filter</button></div>
+          <div class="col-auto"><a class="btn btn-outline-secondary" href="{% url 'tracker:customers_export' %}?q={{ q|urlencode }}">Export CSV</a></div>
+          <div class="col-auto"><a class="btn btn-success" href="{% url 'tracker:customer_register' %}">Register Customer</a></div>
+        </form>
+      </div>
+      <div class="col-md-4">
+        <div class="row g-2">
+ 
+          <div class="col-4"><div class="card"><div class="card-body p-2 text-center"><div class="f-12 f-light">New Today</div><div class="f-w-600">{{ new_customers_today }}</div></div></div></div>
+          <div class="col-4"><div class="card"><div class="card-body p-2 text-center"><div class="f-12 f-light">Returning</div><div class="f-w-600">{{ returning_customers }}</div></div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th class="text-center">Truck</th>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Visits</th>
+                <th>Last Visit</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in customers %}
+                <tr>
+                  <td class="text-center"><img class="truck-thumb" src="{% static 'image/truck.jpg' %}" alt="Truck" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;"></td>
+                  <td class="text-nowrap">{{ c.code }}</td>
+                  <td class="text-nowrap">{{ c.full_name }}</td>
+                  <td>{{ c.phone }}</td>
+                  <td class="text-capitalize">{{ c.customer_type|default:'personal' }}</td>
+                  <td>
+                    {% if c.returning_dates|default:0 > 1 %}
+                      <span class="badge bg-light text-dark">Returning</span>
+                    {% else %}
+                      <span class="badge bg-secondary">New</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ c.total_visits }}</td>
+                  <td>{{ c.last_visit|date:'Y-m-d H:i' }}</td>
+                  <td class="text-end">
+                    <div class="dropdown d-inline-block">
+                      <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions">⋮</button>
+                      <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'tracker:customer_detail' c.id %}">View Profile</a></li>
+                        <li><a class="dropdown-item" href="{% url 'tracker:create_order_for_customer' c.id %}">Create Order</a></li>
+                        <li><a class="dropdown-item" href="{% url 'tracker:customer_edit' c.id %}">Edit</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                          <form method="post" action="{% url 'tracker:customer_delete' c.id %}" onsubmit="return confirm('Delete this customer?');" class="px-3 py-1">
+                            {% csrf_token %}
+                            <button class="btn btn-link text-danger p-0">Delete</button>
+                          </form>
+                        </li>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="9" class="text-center p-4">No customers found</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer">
+        <nav>
+          <ul class="pagination mb-0">
+            {% if customers.has_previous %}
+              <li class="page-item"><a class="page-link" href="?page={{ customers.previous_page_number }}&q={{ q|urlencode }}">Prev</a></li>
+            {% endif %}
+            <li class="page-item disabled"><span class="page-link">Page {{ customers.number }} of {{ customers.paginator.num_pages }}</span></li>
+            {% if customers.has_next %}
+              <li class="page-item"><a class="page-link" href="?page={{ customers.next_page_number }}&q={{ q|urlencode }}">Next</a></li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+{% endblock %}

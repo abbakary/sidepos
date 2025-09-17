@@ -1,0 +1,16 @@
+{% extends 'tracker/base.html' %}
+{% load static %}
+
+{% block title %}Custom Reports{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="page-title">
+    <div class="row align-items-center">
+      <div class="col-6">
+        <h4>Custom Reports</h4>
+        <p class="text-muted mb-0">Generate customized reports</p>
+      </div>
+      <div class="col-6">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'track
