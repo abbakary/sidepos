@@ -142,6 +142,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function executeScripts(container){
+        // Execute inline and external scripts within a container
+        const scripts = container.querySelectorAll('script');
+        scripts.forEach(oldScript => {
+            const s = document.createElement('script');
+            if (oldScript.src) {
+                s.src = oldScript.src;
+            } else {
+                s.text = oldScript.textContent || '';
+            }
+            // Copy attributes like type
+            if (oldScript.type) s.type = oldScript.type;
+            document.body.appendChild(s);
+            // Clean up inline scripts after execution
+            if (!oldScript.src) setTimeout(() => s.remove(), 0);
+        });
+    }
+
     function rebindDynamicHandlers() {
         // Rebind handlers after DOM replacement
         bindStepNav();
