@@ -605,7 +605,7 @@ def customer_register(request: HttpRequest):
         
         # Render the form template
         form_html = render_to_string(
-            'tracker/partials/customer_registration_form.html',
+            'tracker/customer_registration_fragment.html',
             {'form': form, 'step': step},
             request=request
         )
