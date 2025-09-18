@@ -879,8 +879,25 @@ function initTireBrandsChart() {
                 datasets: [{
                     label: 'Number of Orders',
                     data: data.top_brands.values,
-                    backgroundColor: chartColors.primary,
-                    borderColor: chartColors.primary,
+                    backgroundColor: (function(){
+                        // create an array of colors mixing chart palette for visual variety
+                        const palette = Object.values(chartColors);
+                        const colors = [];
+                        for (let i=0;i<data.top_brands.labels.length;i++) {
+                            const c = palette[i % palette.length];
+                            // ensure solid-ish fill by replacing alpha when rgba
+                            if (c.startsWith('rgba')) {
+                                colors.push(c.replace(/rgba\(([^,]+),([^,]+),([^,]+),[^)]+\)/,'rgba($1,$2,$3,0.9)'));
+                            } else {
+                                colors.push(c);
+                            }
+                        }
+                        return colors;
+                    })(),
+                    borderColor: (function(){
+                        const palette = Object.values(chartColors);
+                        return data.top_brands.labels.map((_,i)=> palette[i % palette.length]);
+                    })(),
                     borderWidth: 1,
                     borderRadius: 4
                 }]
