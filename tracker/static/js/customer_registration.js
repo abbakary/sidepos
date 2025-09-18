@@ -267,12 +267,61 @@ document.addEventListener('DOMContentLoaded', function() {
         form.addEventListener('submit', () => localStorage.removeItem('customerRegistrationData'));
     }
 
+    async function initTireSalesSection(){
+        const itemSelect = document.getElementById('id_item_name');
+        const brandSelect = document.getElementById('id_brand');
+        const inventoryStatus = document.getElementById('inventoryStatus');
+        if (!itemSelect || !brandSelect) return;
+
+        async function fetchInventoryItems(){
+            const res = await fetch('/api/inventory/items/');
+            if (!res.ok) throw new Error('Failed items');
+            return res.json();
+        }
+        function populateItems(data){
+            itemSelect.innerHTML = '<option value="">Select Item</option>';
+            const itemsByBrand = {}; const brandSet = new Set(); const brandMap = {};
+            (data.items||[]).forEach(it => { const b = it.brand || 'Unbranded'; brandSet.add(b); (itemsByBrand[b] ||= []).push(it); brandMap[it.name] = b; });
+            // set mapping for auto brand selection
+            itemSelect.setAttribute('data-brands', JSON.stringify(brandMap));
+            // populate groups
+            Object.entries(itemsByBrand).forEach(([brand, items]) => {
+                const og = document.createElement('optgroup'); og.label = brand;
+                items.forEach(it => { const opt = document.createElement('option'); opt.value = it.name; opt.textContent = it.quantity!=null? `${it.name} (${it.quantity} available)` : it.name; og.appendChild(opt); });
+                itemSelect.appendChild(og);
+            });
+            // populate brand options if empty
+            if (!brandSelect.options.length){
+                brandSelect.innerHTML = '<option value="">Select Brand</option>';
+                Array.from(brandSet).sort().forEach(b => { const opt = document.createElement('option'); opt.value = b; opt.textContent = b; brandSelect.appendChild(opt); });
+            }
+        }
+        function checkInventory(){
+            const item = itemSelect.value || ''; const brand = brandSelect.value || '';
+            if (!item) { if (inventoryStatus) inventoryStatus.innerHTML=''; return; }
+            fetch(`/api/inventory/check/?item=${encodeURIComponent(item)}&brand=${encodeURIComponent(brand)}`)
+                .then(r=>r.json()).then(d=>{
+                    if (!inventoryStatus) return;
+                    if ((d.available||0) > 0){
+                        inventoryStatus.innerHTML = '<div class="alert alert-success p-2 mb-3"><i class="fa fa-check-circle me-2"></i>'+d.available+' in stock</div>';
+                    } else {
+                        inventoryStatus.innerHTML = '<div class="alert alert-warning p-2 mb-3"><i class="fa fa-exclamation-triangle me-2"></i>Out of stock</div>';
+                    }
+                }).catch(()=>{ if (inventoryStatus) inventoryStatus.innerHTML=''; });
+        }
+        // events
+        itemSelect.addEventListener('change', () => { const mapping = JSON.parse(itemSelect.getAttribute('data-brands')||'{}'); const bn = mapping[itemSelect.value]; if (bn){ for(let i=0;i<brandSelect.options.length;i++){ if (brandSelect.options[i].text===bn || brandSelect.options[i].value===bn){ brandSelect.selectedIndex=i; break; } } } checkInventory(); });
+        brandSelect.addEventListener('change', checkInventory);
+        try { const data = await fetchInventoryItems(); populateItems(data); checkInventory(); } catch(e){ console.error('Inventory init failed', e); }
+    }
+
     function initializeDynamicBits(){
         brandMapping = initializeBrandMapping();
         setupBrandUpdate();
         initializePhoneMask();
         bindCustomerTypeToggle();
         initializeLocalSave();
+        initTireSalesSection();
         // tooltips
         const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         tooltipTriggerList.map(function (tooltipTriggerEl) { return new bootstrap.Tooltip(tooltipTriggerEl); });
