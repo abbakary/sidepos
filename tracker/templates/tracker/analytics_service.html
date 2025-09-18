@@ -564,8 +564,9 @@ const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     interaction: {
-        intersect: false,
-        mode: 'index'
+        // Use nearest + intersect to make hover responsive for all chart orientations
+        intersect: true,
+        mode: 'nearest'
     },
     scales: {
         y: {
