@@ -878,7 +878,7 @@ function initTireBrandsChart() {
                 labels: data.top_brands.labels,
                 datasets: [{
                     label: 'Number of Orders',
-                    data: data.top_brands.values,
+                    data: (data.top_brands.values || []).map(v => Number(v) || 0),
                     backgroundColor: (function(){
                         // create an array of colors mixing chart palette for visual variety
                         const palette = Object.values(chartColors);
