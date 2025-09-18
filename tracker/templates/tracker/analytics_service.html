@@ -596,12 +596,14 @@ const chartOptions = {
             callbacks: {
                 label: function(context) {
                     let label = context.dataset.label || '';
-                    if (label) {
-                        label += ': ';
+                    if (label) label += ': ';
+                    // For vertical charts value is in parsed.y, for horizontal (indexAxis: 'y') value is in parsed.x
+                    let value = null;
+                    if (context.parsed !== undefined) {
+                        if (typeof context.parsed === 'number') value = context.parsed;
+                        else value = context.parsed.y ?? context.parsed.x ?? null;
                     }
-                    if (context.parsed.y !== null) {
-                        label += context.parsed.y;
-                    }
+                    if (value !== null) label += value;
                     return label;
                 }
             }
