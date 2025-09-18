@@ -572,7 +572,7 @@ def customer_register(request: HttpRequest):
     
     def render_form(step, form, **kwargs):
         context = get_template_context(step, form, **kwargs)
-        return render(request, 'tracker/partials/customer_registration_form.html', context)
+        return render(request, 'tracker/customer_registration_fragment.html', context)
     
     def json_response(success, form=None, redirect_url=None, **kwargs):
         response_data = {
