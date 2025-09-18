@@ -76,6 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (data.success) {
             if (data.form_html && wizardContainer) {
                 wizardContainer.innerHTML = data.form_html;
+                executeScripts(wizardContainer);
                 const nextStep = parseNextStepFromHTML(data.form_html) || (getCurrentStep() + 1);
                 setCurrentStep(nextStep);
                 rebindDynamicHandlers();
