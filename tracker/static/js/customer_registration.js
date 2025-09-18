@@ -48,6 +48,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const data = await res.json();
         if (data.form_html && wizardContainer) {
             wizardContainer.innerHTML = data.form_html;
+            // Execute inline and external scripts inside the replaced HTML
+            executeScripts(wizardContainer);
             setCurrentStep(step);
             rebindDynamicHandlers();
         }
