@@ -85,6 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // If server returned updated HTML with errors, render it
             if (data.form_html && wizardContainer) {
                 wizardContainer.innerHTML = data.form_html;
+                executeScripts(wizardContainer);
                 rebindDynamicHandlers();
             }
             // Also decorate fields with client-side error highlights if provided
