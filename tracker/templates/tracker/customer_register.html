@@ -32,8 +32,451 @@
          
           </div>
           <div class="card-body" id="registrationWizard">
-            {# Initial render of the wizard content via partial so subsequent AJAX updates can reuse the same markup #}
-            {% include 'tracker/partials/customer_registration_form.html' %}
+            {# Initial render of the wizard content (inlined to avoid depending on partials) #}
+            {% load custom_filters %}
+
+            {% if messages %}
+              {% for m in messages %}
+                <div class="alert alert-{{ m.tags }} alert-dismissible fade show d-flex align-items-center" role="alert">
+                  {% if 'success' in m.tags %}
+                    <i class="fa fa-check-circle me-2"></i>
+                  {% elif 'error' in m.tags %}
+                    <i class="fa fa-times-circle me-2"></i>
+                  {% elif 'warning' in m.tags %}
+                    <i class="fa fa-exclamation-triangle me-2"></i>
+                  {% else %}
+                    <i class="fa fa-info-circle me-2"></i>
+                  {% endif %}
+                  <div>{{ m }}</div>
+                  <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                </div>
+              {% endfor %}
+            {% endif %}
+
+            <div class="horizontal-wizard-wrapper">
+              <div class="row g-3">
+                <!-- Step Navigation -->
+                <div class="col-12 main-horizontal-header">
+                  <div class="nav nav-pills horizontal-options" role="tablist">
+                    <a class="nav-link {% if step == 1 %}active{% endif %}" href="{% url 'tracker:customer_register' %}?step=1" data-step-link="true">
+                      <div class="horizontal-wizard">
+                        <div class="stroke-icon-wizard">
+                          <i class="fa fa-user"></i>
+                        </div>
+                        <div class="horizontal-wizard-content">
+                          <h6>Basic Info</h6>
+                        </div>
+                      </div>
+                    </a>
+                    <a class="nav-link {% if step == 2 %}active{% endif %}" href="{% url 'tracker:customer_register' %}?step=2" data-step-link="true">
+                      <div class="horizontal-wizard">
+                        <div class="stroke-icon-wizard">
+                          <i class="fa fa-bullseye"></i>
+                        </div>
+                        <div class="horizontal-wizard-content">
+                          <h6>Intent</h6>
+                        </div>
+                      </div>
+                    </a>
+                    <a class="nav-link {% if step == 3 %}active{% endif %}" href="{% url 'tracker:customer_register' %}?step=3" data-step-link="true">
+                      <div class="horizontal-wizard">
+                        <div class="stroke-icon-wizard">
+                          <i class="fa fa-cogs"></i>
+                        </div>
+                        <div class="horizontal-wizard-content">
+                          <h6>Service Type</h6>
+                        </div>
+                      </div>
+                    </a>
+                    <a class="nav-link {% if step == 4 %}active{% endif %}" href="{% url 'tracker:customer_register' %}?step=4" data-step-link="true">
+                      <div class="horizontal-wizard">
+                        <div class="stroke-icon-wizard">
+                          <i class="fa fa-check"></i>
+                        </div>
+                        <div class="horizontal-wizard-content">
+                          <h6>Complete</h6>
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+
+                <!-- Form Content -->
+                <div class="col-12">
+                  <form method="post" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" name="step" value="{{ step }}">
+
+                    {% if step == 4 %}
+                      <!-- Hidden fields for previous step data -->
+                      {% for key, value in step1.items %}
+                        <input type="hidden" name="step1_{{ key }}" value="{{ value }}">
+                      {% endfor %}
+                      {% for key, value in step2.items %}
+                        <input type="hidden" name="step2_{{ key }}" value="{{ value }}">
+                      {% endfor %}
+                      {% for key, value in step3.items %}
+                        <input type="hidden" name="step3_{{ key }}" value="{{ value }}">
+                      {% endfor %}
+                    {% endif %}
+
+                    {% if step == 1 %}
+                      <!-- STEP 1: Basic Customer Information (subset copied from full template) -->
+                      <div class="step-content">
+                        <div class="text-center mb-4">
+                          <i class="fa fa-user fa-3x text-primary mb-3"></i>
+                          <h4>Basic Customer Information</h4>
+                          <p class="text-muted">Let's start with the customer's basic details</p>
+                        </div>
+
+                        <div class="card shadow-sm">
+                          <div class="card-body">
+                            <div class="row g-4">
+                              <div class="col-md-6">
+                                <div class="form-group">
+                                  <label class="form-label fw-bold">
+                                    <i class="fa fa-user me-2 text-primary"></i>
+                                    Full Name <span class="text-danger">*</span>
+                                  </label>
+                                  {{ form.full_name }}
+                                  {% if form.full_name.errors %}
+                                    <div class="text-danger small mt-1">{{ form.full_name.errors|striptags }}</div>
+                                  {% endif %}
+                                </div>
+                              </div>
+
+                              <div class="col-md-6">
+                                <div class="form-group">
+                                  <label class="form-label fw-bold">
+                                    <i class="fa fa-phone me-2 text-primary"></i>
+                                    Phone Number <span class="text-danger">*</span>
+                                  </label>
+                                  {{ form.phone }}
+                                  {% if form.phone.errors %}
+                                    <div class="text-danger small mt-1">{{ form.phone.errors|striptags }}</div>
+                                  {% endif %}
+                                </div>
+                              </div>
+
+                              <div class="col-md-6">
+                                <div class="form-group">
+                                  <label class="form-label fw-bold">
+                                    <i class="fa fa-envelope me-2 text-primary"></i>
+                                    Email Address
+                                  </label>
+                                  {{ form.email }}
+                                  {% if form.email.errors %}
+                                    <div class="text-danger small mt-1">{{ form.email.errors|striptags }}</div>
+                                  {% endif %}
+                                </div>
+                              </div>
+
+                              <div class="col-md-6">
+                                <div class="form-group">
+                                  <label class="form-label fw-bold">
+                                    <i class="fa fa-map-marker-alt me-2 text-primary"></i>
+                                    Address
+                                  </label>
+                                  {{ form.address }}
+                                  {% if form.address.errors %}
+                                    <div class="text-danger small mt-1">{{ form.address.errors|striptags }}</div>
+                                  {% endif %}
+                                </div>
+                              </div>
+
+                              <div class="col-12">
+                                <div class="card border-primary">
+                                  <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0">
+                                      <i class="fa fa-users me-2"></i>Customer Type Information
+                                    </h6>
+                                  </div>
+                                  <div class="card-body">
+                                    <div class="row g-3">
+                                      <div class="col-md-6">
+                                        <div class="form-group">
+                                          <label class="form-label fw-bold">
+                                            <i class="fa fa-user-circle me-2 text-primary"></i>
+                                            Customer Type <span class="text-danger">*</span>
+                                          </label>
+                                          {{ form.customer_type }}
+                                          {% if form.customer_type.errors %}
+                                            <div class="text-danger small mt-1">{{ form.customer_type.errors|striptags }}</div>
+                                          {% endif %}
+                                        </div>
+                                      </div>
+
+                                      <div class="col-md-6" id="personal-subtype-field" style="display: none;">
+                                        <div class="form-group">
+                                          <label class="form-label fw-bold">
+                                            <i class="fa fa-user-tag me-2 text-primary"></i>
+                                            Personal Type <span class="text-danger">*</span>
+                                          </label>
+                                          {{ form.personal_subtype }}
+                                          {% if form.personal_subtype.errors %}
+                                            <div class="text-danger small mt-1">{{ form.personal_subtype.errors|striptags }}</div>
+                                          {% endif %}
+                                          <small class="form-text text-muted">
+                                            <i class="fa fa-info-circle me-1"></i>
+                                            Select whether this person is the vehicle owner or driver
+                                          </small>
+                                        </div>
+                                      </div>
+
+                                      <div class="col-md-6" id="organization-field" style="display: none;">
+                                        <div class="form-group">
+                                          <label class="form-label fw-bold">
+                                            <i class="fa fa-building me-2 text-primary"></i>
+                                            Organization Name <span class="text-danger">*</span>
+                                          </label>
+                                          {{ form.organization_name }}
+                                          {% if form.organization_name.errors %}
+                                            <div class="text-danger small mt-1">{{ form.organization_name.errors|striptags }}</div>
+                                          {% endif %}
+                                        </div>
+                                      </div>
+
+                                      <div class="col-md-6" id="tax-field" style="display: none;">
+                                        <div class="form-group">
+                                          <label class="form-label fw-bold">
+                                            <i class="fa fa-file-invoice me-2 text-primary"></i>
+                                            Tax Number/TIN <span class="text-danger">*</span>
+                                          </label>
+                                          {{ form.tax_number }}
+                                          {% if form.tax_number.errors %}
+                                            <div class="text-danger small mt-1">{{ form.tax_number.errors|striptags }}</div>
+                                          {% endif %}
+                                        </div>
+                                      </div>
+
+                                      <div class="col-12">
+                                        <div class="form-group">
+                                          <label class="form-label fw-bold">
+                                            <i class="fa fa-sticky-note me-2 text-primary"></i>
+                                            Additional Notes
+                                          </label>
+                                          {{ form.notes }}
+                                          {% if form.notes.errors %}
+                                            <div class="text-danger small mt-1">{{ form.notes.errors|striptags }}</div>
+                                          {% endif %}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                          <button type="submit" name="save_only" value="1" class="btn btn-outline-primary btn-lg">
+                            <i class="fa fa-save me-2"></i>Save Customer
+                          </button>
+                          <div>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                              Next Step <i class="fa fa-arrow-right ms-2"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                    {% elif step == 2 %}
+                      <!-- STEP 2: Intent Selection -->
+                      <div class="step-content">
+                        <div class="text-center mb-4">
+                          <i class="fa fa-bullseye fa-3x text-primary mb-3"></i>
+                          <h4>What brings the customer in today?</h4>
+                          <p class="text-muted">Select the customer's purpose</p>
+                        </div>
+
+                        <div class="row g-4 justify-content-center">
+                          <div class="col-md-4">
+                            <div class="intent-card card h-100 text-center border-2 cursor-pointer" onclick="selectIntent('service')">
+                              <div class="card-body p-4">
+                                <div class="form-check d-none">
+                                  <input type="radio" name="intent" value="service" id="intent_service" class="form-check-input">
+                                </div>
+                                <div class="intent-content">
+                                  <i class="fa fa-tools fa-3x text-primary mb-3"></i>
+                                  <h5 class="card-title">I need a service</h5>
+                                  <p class="card-text text-muted">For car maintenance, repairs, or mechanical services</p>
+                                  <div class="mt-3">
+                                    <small class="text-primary fw-bold">Proceeds to service type selection</small>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="col-md-4">
+                            <div class="intent-card card h-100 text-center border-2 cursor-pointer" onclick="selectIntent('inquiry')">
+                              <div class="card-body p-4">
+                                <div class="form-check d-none">
+                                  <input type="radio" name="intent" value="inquiry" id="intent_inquiry" class="form-check-input">
+                                </div>
+                                <div class="intent-content">
+                                  <i class="fa fa-question-circle fa-3x text-info mb-3"></i>
+                                  <h5 class="card-title">Just an inquiry</h5>
+                                  <p class="card-text text-muted">For questions, quotes, or information requests</p>
+                                  <div class="mt-3">
+                                    <small class="text-info fw-bold">Proceeds directly to inquiry details</small>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {% if form.intent.errors %}
+                          <div class="alert alert-danger mt-3">
+                            <i class="fa fa-exclamation-triangle me-2"></i>
+                            {{ form.intent.errors|striptags }}
+                          </div>
+                        {% endif %}
+
+                        <div class="d-flex justify-content-between mt-4">
+                          <a href="{% url 'tracker:customer_register' %}?step=1" class="btn btn-outline-secondary btn-lg" data-step-link="true">
+                            <i class="fa fa-arrow-left me-2"></i>Previous
+                          </a>
+                          <button type="submit" class="btn btn-primary btn-lg" id="nextStepBtn" disabled>
+                            Next Step <i class="fa fa-arrow-right ms-2"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                    {% elif step == 3 %}
+                      <!-- STEP 3: Service Type Selection -->
+                      <div class="step-content">
+                        <div class="text-center mb-4">
+                          <i class="fa fa-cogs fa-3x text-primary mb-3"></i>
+                          <h4>Service Type Selection</h4>
+                          <p class="text-muted">Choose the type of service needed</p>
+                        </div>
+
+                        <div class="row g-4 justify-content-center">
+                          <div class="col-md-4">
+                            <div class="service-card card h-100 text-center border-2 cursor-pointer" onclick="selectServiceType('tire_sales')">
+                              <div class="card-body p-4">
+                                <div class="form-check d-none">
+                                  <input type="radio" name="service_type" value="tire_sales" id="service_tire_sales" class="form-check-input">
+                                </div>
+                                <div class="service-content">
+                                  <i class="fa fa-circle fa-3x text-warning mb-3"></i>
+                                  <h5 class="card-title">Tire Sales</h5>
+                                  <p class="card-text text-muted">For tire-related sales and installation</p>
+                                  <div class="mt-3">
+                                    <small class="text-warning fw-bold">Tire products and services</small>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="col-md-4">
+                            <div class="service-card card h-100 text-center border-2 cursor-pointer" onclick="selectServiceType('car_service')">
+                              <div class="card-body p-4">
+                                <div class="form-check d-none">
+                                  <input type="radio" name="service_type" value="car_service" id="service_car_service" class="form-check-input">
+                                </div>
+                                <div class="service-content">
+                                  <i class="fa fa-wrench fa-3x text-success mb-3"></i>
+                                  <h5 class="card-title">Car Service</h5>
+                                  <p class="card-text text-muted">For mechanical services and repairs</p>
+                                  <div class="mt-3">
+                                    <small class="text-success fw-bold">Maintenance and repair services</small>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {% if form.service_type.errors %}
+                          <div class="alert alert-danger mt-3">
+                            <i class="fa fa-exclamation-triangle me-2"></i>
+                            {{ form.service_type.errors|striptags }}
+                          </div>
+                        {% endif %}
+
+                        <div class="d-flex justify-content-between mt-4">
+                          <a href="{% url 'tracker:customer_register' %}?step=2" class="btn btn-outline-secondary btn-lg" data-step-link="true">
+                            <i class="fa fa-arrow-left me-2"></i>Previous
+                          </a>
+                          <button type="submit" class="btn btn-primary btn-lg" id="nextServiceBtn" disabled>
+                            Next Step <i class="fa fa-arrow-right ms-2"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                    {% else %}
+                      <!-- STEP 4: Review & Complete (condensed) -->
+                      <div class="step-content">
+                        <div class="text-center mb-4">
+                          <i class="fa fa-check-circle fa-3x text-success mb-3"></i>
+                          <h4>Review & Complete Registration</h4>
+                          <p class="text-muted">Review all information and complete the registration</p>
+                        </div>
+
+                        <div class="card mb-4 border-info">
+                          <div class="card-header bg-info text-white">
+                            <h6 class="mb-0"><i class="fa fa-user me-2"></i>Customer Summary</h6>
+                          </div>
+                          <div class="card-body">
+                            <div class="row">
+                              <div class="col-md-6">
+                                <p class="mb-2"><strong>Name:</strong> {{ step1.full_name }}</p>
+                                <p class="mb-2"><strong>Phone:</strong> {{ step1.phone }}</p>
+                                {% if step1.email %}<p class="mb-2"><strong>Email:</strong> {{ step1.email }}</p>{% endif %}
+                                <p class="mb-2"><strong>Customer Type:</strong> <span class="badge bg-secondary">{{ step1.customer_type|title }}</span></p>
+                                {% if step1.customer_type == 'personal' and step1.personal_subtype %}
+                                  <p class="mb-2"><strong>Type:</strong> {{ step1.personal_subtype|title }}</p>
+                                {% endif %}
+                                {% if step1.organization_name %}
+                                  <p class="mb-2"><strong>Organization:</strong> {{ step1.organization_name }}</p>
+                                {% endif %}
+                              </div>
+                              <div class="col-md-6">
+                                <p class="mb-2"><strong>Intent:</strong> <span class="badge bg-primary">{{ step2.intent|title }}</span></p>
+                                {% if step3.service_type %}
+                                  <p class="mb-2"><strong>Service Type:</strong> <span class="badge bg-success">{{ step3.service_type|title }}</span></p>
+                                {% endif %}
+                                {% if step1.address %}<p class="mb-2"><strong>Address:</strong> {{ step1.address|truncatewords:10 }}</p>{% endif %}
+                                {% if step1.tax_number %}<p class="mb-2"><strong>Tax Number:</strong> {{ step1.tax_number }}</p>{% endif %}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {# Service-specific partials (reuse existing) #}
+                        {% if step2.intent == 'service' and step3.service_type %}
+                          {% if step3.service_type == 'tire_sales' %}
+                            {% include 'tracker/partials/service_forms/tire_sales.html' %}
+                          {% elif step3.service_type == 'car_service' %}
+                            {% include 'tracker/partials/service_forms/car_service.html' %}
+                          {% endif %}
+                        {% endif %}
+
+                        <div class="d-flex justify-content-between mt-4">
+                          {% if step2.intent == 'inquiry' %}
+                            <a href="{% url 'tracker:customer_register' %}?step=2" class="btn btn-outline-secondary btn-lg" data-step-link="true">
+                              <i class="fa fa-arrow-left me-2"></i>Previous
+                            </a>
+                          {% else %}
+                            <a href="{% url 'tracker:customer_register' %}?step=3" class="btn btn-outline-secondary btn-lg" data-step-link="true">
+                              <i class="fa fa-arrow-left me-2"></i>Previous
+                            </a>
+                          {% endif %}
+                          <button type="submit" class="btn btn-success btn-lg">
+                            Complete Registration <i class="fa fa-check ms-2"></i>
+                          </button>
+                        </div>
+                      </div>
+                    {% endif %}
+                  </form>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -132,17 +575,30 @@
       transition: all 0.3s ease;
       cursor: pointer;
     }
-    
+
     .intent-card:hover, .service-card:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
-    
+
     .intent-card.border-primary, .service-card.border-primary {
       border-color: #0d6efd !important;
       border-width: 2px !important;
     }
-    
+
+    /* Visual style for disabled future step links (SPA gating) */
+    .nav-link.disabled {
+      opacity: 0.6;
+      pointer-events: none;
+      cursor: not-allowed;
+      filter: grayscale(30%);
+    }
+
+    /* Keep the horizontal-wizard slightly dimmed when parent link is disabled */
+    .nav-link.disabled .horizontal-wizard {
+      opacity: 0.7;
+    }
+
     .cursor-pointer {
       cursor: pointer;
     }

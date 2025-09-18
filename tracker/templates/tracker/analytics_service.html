@@ -564,8 +564,9 @@ const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     interaction: {
-        intersect: false,
-        mode: 'index'
+        // Use nearest + intersect to make hover responsive for all chart orientations
+        intersect: true,
+        mode: 'nearest'
     },
     scales: {
         y: {
@@ -595,12 +596,14 @@ const chartOptions = {
             callbacks: {
                 label: function(context) {
                     let label = context.dataset.label || '';
-                    if (label) {
-                        label += ': ';
+                    if (label) label += ': ';
+                    // For vertical charts value is in parsed.y, for horizontal (indexAxis: 'y') value is in parsed.x
+                    let value = null;
+                    if (context.parsed !== undefined) {
+                        if (typeof context.parsed === 'number') value = context.parsed;
+                        else value = context.parsed.y ?? context.parsed.x ?? null;
                     }
-                    if (context.parsed.y !== null) {
-                        label += context.parsed.y;
-                    }
+                    if (value !== null) label += value;
                     return label;
                 }
             }
@@ -776,8 +779,8 @@ function initServiceDistributionChart() {
                             label: function(context) {
                                 const label = context.label || '';
                                 const value = context.raw || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((value / total) * 100);
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0) || 0;
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
                                 return `${label}: ${value} (${percentage}%)`;
                             }
                         }
@@ -875,9 +878,26 @@ function initTireBrandsChart() {
                 labels: data.top_brands.labels,
                 datasets: [{
                     label: 'Number of Orders',
-                    data: data.top_brands.values,
-                    backgroundColor: chartColors.primary,
-                    borderColor: chartColors.primary,
+                    data: (data.top_brands.values || []).map(v => Number(v) || 0),
+                    backgroundColor: (function(){
+                        // create an array of colors mixing chart palette for visual variety
+                        const palette = Object.values(chartColors);
+                        const colors = [];
+                        for (let i=0;i<data.top_brands.labels.length;i++) {
+                            const c = palette[i % palette.length];
+                            // ensure solid-ish fill by replacing alpha when rgba
+                            if (c.startsWith('rgba')) {
+                                colors.push(c.replace(/rgba\(([^,]+),([^,]+),([^,]+),[^)]+\)/,'rgba($1,$2,$3,0.9)'));
+                            } else {
+                                colors.push(c);
+                            }
+                        }
+                        return colors;
+                    })(),
+                    borderColor: (function(){
+                        const palette = Object.values(chartColors);
+                        return data.top_brands.labels.map((_,i)=> palette[i % palette.length]);
+                    })(),
                     borderWidth: 1,
                     borderRadius: 4
                 }]
@@ -967,8 +987,8 @@ function initTireTypesChart() {
                             label: function(context) {
                                 const label = context.label || '';
                                 const value = context.raw || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((value / total) * 100);
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0) || 0;
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
                                 return `${label}: ${value} (${percentage}%)`;
                             }
                         }
@@ -1036,8 +1056,8 @@ function initInquiryTypesChart() {
                             label: function(context) {
                                 const label = context.label || '';
                                 const value = context.raw || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((value / total) * 100);
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0) || 0;
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
                                 return `${label}: ${value} (${percentage}%)`;
                             }
                         }
@@ -1106,8 +1126,8 @@ function initServiceTypesChart() {
                             label: function(context) {
                                 const label = context.label || '';
                                 const value = context.raw || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((value / total) * 100);
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0) || 0;
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
                                 return `${label}: ${value} (${percentage}%)`;
                             }
                         }

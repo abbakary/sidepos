@@ -195,6 +195,42 @@
 }
 
 /* Step navigation improvements */
+
+/* Sidebar theme overrides: unify background and active styles */
+.sidebar-wrapper, .sidebar-wrapper .sidebar-main, .sidebar-wrapper .sidebar-main .sidebar-links {
+    background: #073b57 !important; /* muted dark blue */
+}
+.sidebar-wrapper .sidebar-main .sidebar-links > li > a.sidebar-title {
+    color: #e6f0fb !important;
+}
+.sidebar-wrapper .sidebar-main .sidebar-links > li.active > a.sidebar-title,
+.sidebar-wrapper .sidebar-main .sidebar-links > li > a.sidebar-title:hover {
+    color: #a8d6ff !important;
+    background: rgba(10,120,180,0.08) !important;
+}
+.sidebar-wrapper .sidebar-main .sidebar-links > li {
+    transition: background-color 0.18s ease;
+}
+/* Ensure only one active visual state */
+.sidebar-wrapper .sidebar-main .sidebar-links > li.active ~ li.active { background: none !important; }
+
+/* Submenu overrides */
+.sidebar-wrapper .sidebar-main .sidebar-links > li .sidebar-submenu {
+    background: #083a58 !important;
+}
+
+/* Slightly dim pins */
+.sidebar-wrapper .sidebar-main .pin-title { color: #9fcffb !important; }
+
+/* Small helper to dim disabled sidebar links (used by SPA gating) */
+.nav-link.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* End sidebar theme overrides */
+
+/* Step navigation improvements */
 .horizontal-wizard .stroke-icon-wizard {
     transition: all 0.3s ease;
     background-color: #f8f9fa;

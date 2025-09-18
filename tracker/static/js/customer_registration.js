@@ -1,226 +1,244 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize brand mapping from item name to brand
-    function initializeBrandMapping() {
-        const itemNameSelect = document.getElementById('id_item_name');
-        if (!itemNameSelect) return null;
-        
+    // --- Helpers ---
+    const wizardContainer = document.getElementById('registrationWizard');
+    const rootForm = () => wizardContainer ? wizardContainer.querySelector('form') : null;
+
+    function getCurrentStep() {
+        const f = rootForm();
+        const si = f ? f.querySelector('input[name="step"]') : null;
+        const s = si ? parseInt(si.value || '1', 10) : 1;
+        return isNaN(s) ? 1 : s;
+    }
+    function setCurrentStep(step) {
+        const f = rootForm();
+        const si = f ? f.querySelector('input[name="step"]') : null;
+        if (si) si.value = String(step);
+        localStorage.setItem('customerRegCurrentStep', String(step));
+        updateStepNavState(step);
+    }
+    function updateStepNavState(current) {
+        const links = document.querySelectorAll('[data-step-link="true"]');
+        links.forEach((a) => {
+            const url = new URL(a.getAttribute('href'), window.location.origin);
+            const stepParam = parseInt(url.searchParams.get('step') || '1', 10);
+            a.classList.toggle('disabled', stepParam > current);
+            if (stepParam === current) a.classList.add('active'); else a.classList.remove('active');
+        });
+    }
+    function showAlert(type, message) {
+        if (!wizardContainer || !message) return;
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show d-flex align-items-center`;
+        alert.innerHTML = `<i class="fa ${type==='success'?'fa-check-circle':type==='error'?'fa-times-circle':type==='warning'?'fa-exclamation-triangle':'fa-info-circle'} me-2"></i><div>${message}</div><button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>`;
+        wizardContainer.prepend(alert);
+    }
+    function parseNextStepFromHTML(html) {
         try {
-            const brandsData = itemNameSelect.getAttribute('data-brands');
-            return brandsData ? JSON.parse(brandsData) : {};
-        } catch (e) {
-            console.error('Error parsing brand mapping:', e);
-            return {};
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const stepInput = doc.querySelector('input[name="step"]');
+            return stepInput ? parseInt(stepInput.value || '1', 10) : null;
+        } catch { return null; }
+    }
+
+    // --- AJAX load a step (GET) ---
+    async function loadStep(step) {
+        const params = new URLSearchParams({ step: String(step), load_step: '1' });
+        const res = await fetch(`${window.location.pathname}?${params.toString()}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        if (!res.ok) throw new Error('Failed to load step');
+        const data = await res.json();
+        if (data.form_html && wizardContainer) {
+            wizardContainer.innerHTML = data.form_html;
+            // Execute inline and external scripts inside the replaced HTML
+            executeScripts(wizardContainer);
+            setCurrentStep(step);
+            rebindDynamicHandlers();
         }
     }
-    
-    const brandMapping = initializeBrandMapping();
-    
-    // Update brand dropdown when item is selected
+
+    // --- AJAX submit current step (POST) ---
+    async function submitStep(e) {
+        const form = rootForm();
+        if (!form) return;
+        e.preventDefault();
+
+        const fd = new FormData(form);
+        const res = await fetch(window.location.pathname, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: fd
+        });
+        if (!res.ok) { showAlert('error', 'Network error, please try again'); return; }
+        const data = await res.json();
+
+        if (data.message && data.message_type) showAlert(data.message_type, data.message);
+        if (data.redirect_url) { window.location.href = data.redirect_url; return; }
+
+        if (data.success) {
+            if (data.form_html && wizardContainer) {
+                wizardContainer.innerHTML = data.form_html;
+                executeScripts(wizardContainer);
+                const nextStep = parseNextStepFromHTML(data.form_html) || (getCurrentStep() + 1);
+                setCurrentStep(nextStep);
+                rebindDynamicHandlers();
+            }
+        } else {
+            // If server returned updated HTML with errors, render it
+            if (data.form_html && wizardContainer) {
+                wizardContainer.innerHTML = data.form_html;
+                executeScripts(wizardContainer);
+                rebindDynamicHandlers();
+            }
+            // Also decorate fields with client-side error highlights if provided
+            if (data.errors) {
+                Object.keys(data.errors).forEach((name) => {
+                    const el = wizardContainer.querySelector(`[name="${name}"]`);
+                    if (el) el.classList.add('is-invalid');
+                });
+                const firstErr = wizardContainer.querySelector('.is-invalid');
+                if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    }
+
+    // --- Intercept step nav clicks (no full page reload) ---
+    function bindStepNav() {
+        document.querySelectorAll('[data-step-link="true"]').forEach((a) => {
+            a.addEventListener('click', async (ev) => {
+                ev.preventDefault();
+                const current = getCurrentStep();
+                const url = new URL(a.getAttribute('href'), window.location.origin);
+                const target = parseInt(url.searchParams.get('step') || '1', 10);
+                if (target > current) return; // gating forward navigation
+                try { await loadStep(target); } catch (e) { console.error(e); }
+            });
+        });
+    }
+
+    // --- Form submit interception for SPA ---
+    function bindFormSubmit() {
+        const form = rootForm();
+        if (!form) return;
+        form.addEventListener('submit', submitStep);
+    }
+
+    // --- Enable/disable Next buttons based on selections ---
+    function bindIntentServiceEnablers() {
+        const nextIntentBtn = document.getElementById('nextStepBtn');
+        const intentRadios = wizardContainer.querySelectorAll('input[name="intent"]');
+        if (nextIntentBtn && intentRadios.length) {
+            function check() {
+                let any = false; intentRadios.forEach(r => { if (r.checked) any = true; });
+                nextIntentBtn.disabled = !any;
+            }
+            intentRadios.forEach(r => r.addEventListener('change', check));
+            check();
+        }
+        const nextServiceBtn = document.getElementById('nextServiceBtn');
+        const svcRadios = wizardContainer.querySelectorAll('input[name="service_type"]');
+        if (nextServiceBtn && svcRadios.length) {
+            function check2(){ let any=false; svcRadios.forEach(r=>{ if(r.checked) any=true; }); nextServiceBtn.disabled=!any; }
+            svcRadios.forEach(r=>r.addEventListener('change', check2));
+            check2();
+        }
+    }
+
+    function executeScripts(container){
+        // Execute inline and external scripts within a container
+        const scripts = container.querySelectorAll('script');
+        scripts.forEach(oldScript => {
+            const s = document.createElement('script');
+            if (oldScript.src) {
+                s.src = oldScript.src;
+            } else {
+                s.text = oldScript.textContent || '';
+            }
+            // Copy attributes like type
+            if (oldScript.type) s.type = oldScript.type;
+            document.body.appendChild(s);
+            // Clean up inline scripts after execution
+            if (!oldScript.src) setTimeout(() => s.remove(), 0);
+        });
+    }
+
+    function rebindDynamicHandlers() {
+        // Rebind handlers after DOM replacement
+        bindStepNav();
+        bindFormSubmit();
+        bindIntentServiceEnablers();
+        // Keep existing behaviors
+        initializeDynamicBits();
+    }
+
+    // --- Existing behaviors (moved to reusable function) ---
+    function initializeBrandMapping() {
+        const itemNameSelect = document.getElementById('id_item_name');
+        if (!itemNameSelect) return {};
+        try { const brandsData = itemNameSelect.getAttribute('data-brands'); return brandsData ? JSON.parse(brandsData) : {}; }
+        catch (e) { console.error('Error parsing brand mapping:', e); return {}; }
+    }
+    let brandMapping = initializeBrandMapping();
     function setupBrandUpdate() {
         const itemNameSelect = document.getElementById('id_item_name');
         const brandSelect = document.getElementById('id_brand');
-        
         if (!itemNameSelect || !brandSelect) return;
-        
         itemNameSelect.addEventListener('change', function() {
-            const selectedItem = this.value;
-            const brandName = brandMapping[selectedItem];
-            
+            const brandName = brandMapping[this.value];
             if (brandName) {
-                // Find and select the brand in the dropdown
                 for (let i = 0; i < brandSelect.options.length; i++) {
-                    if (brandSelect.options[i].text === brandName) {
-                        brandSelect.selectedIndex = i;
-                        break;
+                    if (brandSelect.options[i].text === brandName || brandSelect.options[i].value === brandName) {
+                        brandSelect.selectedIndex = i; break;
                     }
                 }
             }
         });
     }
-    
-    // Initialize brand update functionality
-    setupBrandUpdate();
-    
-    // Auto-format phone number
-    const phoneInput = document.querySelector('input[name="phone"]');
-    if (phoneInput) {
-        phoneInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length > 13) value = value.substring(0, 13);
-            e.target.value = value;
-        });
+    function initializePhoneMask() {
+        const phoneInput = document.querySelector('input[name="phone"]');
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 13) value = value.substring(0, 13);
+                e.target.value = value;
+            });
+        }
     }
-
-    // Customer type dynamic fields
-    const customerTypeSelect = document.querySelector('select[name="customer_type"]');
-    if (customerTypeSelect) {
-        function toggleCustomerTypeFields() {
-            const selectedType = customerTypeSelect.value;
-            
-            // Get conditional field elements
-            const organizationField = document.getElementById('organization-field');
-            const taxField = document.getElementById('tax-field');
-            const personalSubtypeField = document.getElementById('personal-subtype-field');
-            
-            // Hide all conditional fields first
+    function toggleCustomerTypeFields() {
+        const customerTypeSelect = document.querySelector('select[name="customer_type"]');
+        if (!customerTypeSelect) return;
+        const selectedType = customerTypeSelect.value;
+        const organizationField = document.getElementById('organization-field');
+        const taxField = document.getElementById('tax-field');
+        const personalSubtypeField = document.getElementById('personal-subtype-field');
+        [organizationField, taxField, personalSubtypeField].forEach(field => {
+            if (field) {
+                field.style.display = 'none';
+                field.querySelectorAll('input, select, textarea').forEach(i => i.removeAttribute('required'));
+            }
+        });
+        if (selectedType === 'personal') {
+            if (personalSubtypeField) { personalSubtypeField.style.display = 'block'; const s = personalSubtypeField.querySelector('select'); if (s) s.setAttribute('required','required'); }
+        } else if (['government','ngo','company'].includes(selectedType)) {
+            if (organizationField) { organizationField.style.display = 'block'; const i = organizationField.querySelector('input'); if (i) i.setAttribute('required','required'); }
+            if (taxField) { taxField.style.display = 'block'; const i = taxField.querySelector('input'); if (i) i.setAttribute('required','required'); }
+        }
+        setTimeout(() => {
             [organizationField, taxField, personalSubtypeField].forEach(field => {
-                if (field) {
-                    field.style.display = 'none';
-                    // Remove required attribute from hidden fields
-                    const inputs = field.querySelectorAll('input, select, textarea');
-                    inputs.forEach(input => input.removeAttribute('required'));
+                if (field && field.style.display === 'block') {
+                    field.classList.add('animate-in'); setTimeout(() => field.classList.remove('animate-in'), 400);
                 }
             });
-
-            // Show relevant fields based on customer type
-            if (selectedType === 'personal') {
-                // Show personal subtype field for personal customers
-                if (personalSubtypeField) {
-                    personalSubtypeField.style.display = 'block';
-                    const subtypeSelect = personalSubtypeField.querySelector('select');
-                    if (subtypeSelect) subtypeSelect.setAttribute('required', 'required');
-                }
-            } else if (['government', 'ngo', 'company'].includes(selectedType)) {
-                // Show organization and tax fields for organizational customers
-                if (organizationField) {
-                    organizationField.style.display = 'block';
-                    const orgInput = organizationField.querySelector('input');
-                    if (orgInput) orgInput.setAttribute('required', 'required');
-                }
-                if (taxField) {
-                    taxField.style.display = 'block';
-                    const taxInput = taxField.querySelector('input');
-                    if (taxInput) taxInput.setAttribute('required', 'required');
-                }
-            }
-            // For 'bodaboda' type, no additional fields are required
-            
-            // Add visual feedback for field changes with smooth animations
-            setTimeout(() => {
-                [organizationField, taxField, personalSubtypeField].forEach(field => {
-                    if (field && field.style.display === 'block') {
-                        field.classList.add('animate-in');
-                        // Remove animation class after animation completes
-                        setTimeout(() => field.classList.remove('animate-in'), 400);
-                    }
-                });
-            }, 50);
-        }
-
-        // Initialize on page load
-        toggleCustomerTypeFields();
-        
-        // Handle changes
-        customerTypeSelect.addEventListener('change', toggleCustomerTypeFields);
+        }, 50);
     }
+    function bindCustomerTypeToggle(){ const s=document.querySelector('select[name="customer_type"]'); if (s){ s.addEventListener('change', toggleCustomerTypeFields); toggleCustomerTypeFields(); } }
 
-    // Intent selection enhancement
-    const intentCards = document.querySelectorAll('.intent-card');
-    const intentRadios = document.querySelectorAll('input[name="intent"]');
-    
-    if (intentCards.length > 0) {
-        // Add click handlers to cards
-        intentCards.forEach(card => {
-            card.addEventListener('click', function() {
-                const radio = this.querySelector('input[type="radio"]');
-                if (radio) {
-                    radio.checked = true;
-                    updateIntentCardStyles();
-                }
-            });
-        });
-
-        // Add change handlers to radio buttons
-        intentRadios.forEach(radio => {
-            radio.addEventListener('change', updateIntentCardStyles);
-        });
-
-        function updateIntentCardStyles() {
-            intentCards.forEach(card => {
-                const radio = card.querySelector('input[type="radio"]');
-                if (radio && radio.checked) {
-                    card.classList.add('selected');
-                } else {
-                    card.classList.remove('selected');
-                }
-            });
-        }
-
-        // Initialize on page load
-        updateIntentCardStyles();
-    }
-
-    // Service and Sales card selection
-    const serviceCards = document.querySelectorAll('.service-check-card');
-    const salesCards = document.querySelectorAll('.sales-check-card');
-    
-    function handleCheckCardClick(cards) {
-        cards.forEach(card => {
-            card.addEventListener('click', function() {
-                const checkbox = this.querySelector('input[type="checkbox"]');
-                const radio = this.querySelector('input[type="radio"]');
-                
-                if (checkbox) {
-                    checkbox.checked = !checkbox.checked;
-                } else if (radio) {
-                    radio.checked = true;
-                }
-                
-                updateCheckCardStyles(cards);
-            });
-        });
-    }
-    
-    function updateCheckCardStyles(cards) {
-        cards.forEach(card => {
-            const input = card.querySelector('input[type="checkbox"], input[type="radio"]');
-            if (input && input.checked) {
-                card.classList.add('selected');
-            } else {
-                card.classList.remove('selected');
-            }
-        });
-    }
-    
-    if (serviceCards.length > 0) {
-        handleCheckCardClick(serviceCards);
-        updateCheckCardStyles(serviceCards);
-    }
-    
-    if (salesCards.length > 0) {
-        handleCheckCardClick(salesCards);
-        updateCheckCardStyles(salesCards);
-    }
-
-    // Dynamic service type loading
-    const serviceTypeRadios = document.querySelectorAll('input[name="service_type"]');
-    const serviceDetails = document.getElementById('service-details');
-    
-    if (serviceTypeRadios.length && serviceDetails) {
-        serviceTypeRadios.forEach(radio => {
-            radio.addEventListener('change', function() {
-                if (this.checked) {
-                    const serviceType = this.value;
-                    fetch(`/service-form/${serviceType}/`)
-                        .then(response => response.text())
-                        .then(html => {
-                            serviceDetails.innerHTML = html;
-                            // Re-initialize any dynamic elements if needed
-                        })
-                        .catch(error => console.error('Error loading service form:', error));
-                }
-            });
-        });
-    }
-
-    // Form validation + duplicate customer check (Step 1)
-    const form = document.querySelector('form');
+    // duplicate check used only on explicit non-AJAX fallback; keep as-is
     async function checkDuplicateCustomer() {
-        const nameEl = document.getElementById('id_full_name');
-        const phoneEl = document.getElementById('id_phone');
-        const typeEl = document.getElementById('id_customer_type');
-        const orgEl = document.getElementById('id_organization_name');
-        const taxEl = document.getElementById('id_tax_number');
+        const form = rootForm(); if (!form) return null;
+        const nameEl = form.querySelector('#id_full_name');
+        const phoneEl = form.querySelector('#id_phone');
+        const typeEl = form.querySelector('#id_customer_type');
+        const orgEl = form.querySelector('#id_organization_name');
+        const taxEl = form.querySelector('#id_tax_number');
         if (!nameEl || !phoneEl) return null;
         const full_name = (nameEl.value || '').trim();
         const phone = (phoneEl.value || '').trim();
@@ -230,125 +248,89 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!full_name || !phone) return null;
         const params = new URLSearchParams({ full_name, phone, customer_type, organization_name, tax_number });
         const res = await fetch(`/api/customers/check-duplicate/?${params.toString()}`, { headers: { 'Accept': 'application/json' }});
-        if (!res.ok) return null;
-        return res.json();
+        if (!res.ok) return null; return res.json();
     }
 
-    function showExistingCustomerModal(data) {
-        const modalEl = document.getElementById('existingCustomerModal');
-        if (!modalEl || !data || !data.customer) return;
-        const c = data.customer;
-        document.getElementById('existingCustomerName').textContent = c.full_name || '';
-        document.getElementById('existingCustomerCode').textContent = c.code || '';
-        document.getElementById('existingCustomerPhone').textContent = c.phone || '';
-        document.getElementById('existingCustomerType').textContent = (c.customer_type || 'personal');
-        document.getElementById('existingCustomerOrg').textContent = c.organization_name || '-';
-        document.getElementById('existingCustomerTax').textContent = c.tax_number || '-';
-        document.getElementById('existingCustomerEmail').textContent = c.email || '-';
-        document.getElementById('existingCustomerVisits').textContent = c.total_visits != null ? c.total_visits : '-';
-        document.getElementById('existingCustomerAddress').textContent = c.address || '-';
-        const orderBtn = document.getElementById('existingCustomerCreateOrderBtn');
-        const viewBtn = document.getElementById('existingCustomerViewBtn');
-        if (orderBtn) orderBtn.setAttribute('href', c.create_order_url);
-        if (viewBtn) viewBtn.setAttribute('href', c.detail_url);
-        const bsModal = new bootstrap.Modal(modalEl);
-        bsModal.show();
-    }
-
-    if (form) {
-        form.addEventListener('submit', async function(e) {
-            let isValid = true;
-            const requiredFields = form.querySelectorAll('[required]');
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    field.classList.add('is-invalid');
-                    isValid = false;
-                } else {
-                    field.classList.remove('is-invalid');
-                }
-            });
-            if (!isValid) {
-                e.preventDefault();
-                const firstInvalid = form.querySelector('.is-invalid');
-                if (firstInvalid) firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                return;
-            }
-            const stepInput = form.querySelector('input[name="step"]');
-            const currentStep = stepInput ? parseInt(stepInput.value, 10) : null;
-            if (currentStep === 1) {
-                e.preventDefault();
-                const result = await checkDuplicateCustomer();
-                if (result && result.exists) {
-                    showExistingCustomerModal(result);
-                    return;
-                }
-                // Re-submit with original submitter preserved
-                const submitter = e.submitter;
-                if (submitter && submitter.name) {
-                    const hidden = document.createElement('input');
-                    hidden.type = 'hidden';
-                    hidden.name = submitter.name;
-                    hidden.value = submitter.value;
-                    form.appendChild(hidden);
-                }
-                form.submit();
-            }
-        });
-    }
-
-    // Auto-save form data
-    function saveFormData() {
-        if (!form) return;
-        
-        const formData = new FormData(form);
-        const formObject = {};
-        formData.forEach((value, key) => {
-            formObject[key] = value;
-        });
-        
-        localStorage.setItem('customerRegistrationData', JSON.stringify(formObject));
-    }
-
-    // Load saved form data
-    function loadFormData() {
-        const savedData = localStorage.getItem('customerRegistrationData');
-        if (!savedData) return;
-        
-        try {
-            const formData = JSON.parse(savedData);
-            Object.keys(formData).forEach(key => {
-                const element = form.querySelector(`[name="${key}"]`);
-                if (element) {
-                    if (element.type === 'checkbox' || element.type === 'radio') {
-                        element.checked = formData[key] === 'true' || formData[key] === element.value;
-                    } else {
-                        element.value = formData[key];
-                    }
-                }
-            });
-        } catch (e) {
-            console.error('Error loading form data:', e);
-            localStorage.removeItem('customerRegistrationData');
+    function initializeLocalSave() {
+        const form = rootForm(); if (!form) return;
+        function saveFormData() {
+            const fd = new FormData(form); const obj = {}; fd.forEach((v,k)=>{ obj[k]=v; });
+            localStorage.setItem('customerRegistrationData', JSON.stringify(obj));
         }
-    }
-
-    // Set up auto-save
-    if (form) {
-        // Load saved data on page load
+        function loadFormData() {
+            const saved = localStorage.getItem('customerRegistrationData'); if (!saved) return;
+            try { const obj = JSON.parse(saved); Object.keys(obj).forEach(k => { const el=form.querySelector(`[name="${k}"]`); if (!el) return; if (el.type==='checkbox'||el.type==='radio'){ el.checked = obj[k] === 'true' || obj[k] === el.value; } else { el.value = obj[k]; } }); }
+            catch(e){ console.error('Error loading form data:', e); localStorage.removeItem('customerRegistrationData'); }
+        }
         loadFormData();
-        
-        // Save on input change
         form.addEventListener('input', saveFormData);
-        
-        // Clear saved data on successful form submission
-        form.addEventListener('submit', function() {
-            localStorage.removeItem('customerRegistrationData');
-        });
+        form.addEventListener('submit', () => localStorage.removeItem('customerRegistrationData'));
     }
 
-    // Initialize tooltips
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
+    async function initTireSalesSection(){
+        const itemSelect = document.getElementById('id_item_name');
+        const brandSelect = document.getElementById('id_brand');
+        const inventoryStatus = document.getElementById('inventoryStatus');
+        if (!itemSelect || !brandSelect) return;
+
+        async function fetchInventoryItems(){
+            const res = await fetch('/api/inventory/items/');
+            if (!res.ok) throw new Error('Failed items');
+            return res.json();
+        }
+        function populateItems(data){
+            itemSelect.innerHTML = '<option value="">Select Item</option>';
+            const itemsByBrand = {}; const brandSet = new Set(); const brandMap = {};
+            (data.items||[]).forEach(it => { const b = it.brand || 'Unbranded'; brandSet.add(b); (itemsByBrand[b] ||= []).push(it); brandMap[it.name] = b; });
+            // set mapping for auto brand selection
+            itemSelect.setAttribute('data-brands', JSON.stringify(brandMap));
+            // populate groups
+            Object.entries(itemsByBrand).forEach(([brand, items]) => {
+                const og = document.createElement('optgroup'); og.label = brand;
+                items.forEach(it => { const opt = document.createElement('option'); opt.value = it.name; opt.textContent = it.quantity!=null? `${it.name} (${it.quantity} available)` : it.name; og.appendChild(opt); });
+                itemSelect.appendChild(og);
+            });
+            // populate brand options if empty
+            if (!brandSelect.options.length){
+                brandSelect.innerHTML = '<option value="">Select Brand</option>';
+                Array.from(brandSet).sort().forEach(b => { const opt = document.createElement('option'); opt.value = b; opt.textContent = b; brandSelect.appendChild(opt); });
+            }
+        }
+        function checkInventory(){
+            const item = itemSelect.value || ''; const brand = brandSelect.value || '';
+            if (!item) { if (inventoryStatus) inventoryStatus.innerHTML=''; return; }
+            fetch(`/api/inventory/check/?item=${encodeURIComponent(item)}&brand=${encodeURIComponent(brand)}`)
+                .then(r=>r.json()).then(d=>{
+                    if (!inventoryStatus) return;
+                    if ((d.available||0) > 0){
+                        inventoryStatus.innerHTML = '<div class="alert alert-success p-2 mb-3"><i class="fa fa-check-circle me-2"></i>'+d.available+' in stock</div>';
+                    } else {
+                        inventoryStatus.innerHTML = '<div class="alert alert-warning p-2 mb-3"><i class="fa fa-exclamation-triangle me-2"></i>Out of stock</div>';
+                    }
+                }).catch(()=>{ if (inventoryStatus) inventoryStatus.innerHTML=''; });
+        }
+        // events
+        itemSelect.addEventListener('change', () => { const mapping = JSON.parse(itemSelect.getAttribute('data-brands')||'{}'); const bn = mapping[itemSelect.value]; if (bn){ for(let i=0;i<brandSelect.options.length;i++){ if (brandSelect.options[i].text===bn || brandSelect.options[i].value===bn){ brandSelect.selectedIndex=i; break; } } } checkInventory(); });
+        brandSelect.addEventListener('change', checkInventory);
+        try { const data = await fetchInventoryItems(); populateItems(data); checkInventory(); } catch(e){ console.error('Inventory init failed', e); }
+    }
+
+    function initializeDynamicBits(){
+        brandMapping = initializeBrandMapping();
+        setupBrandUpdate();
+        initializePhoneMask();
+        bindCustomerTypeToggle();
+        initializeLocalSave();
+        initTireSalesSection();
+        // tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) { return new bootstrap.Tooltip(tooltipTriggerEl); });
+    }
+
+    // Initial binds
+    bindStepNav();
+    bindFormSubmit();
+    bindIntentServiceEnablers();
+    initializeDynamicBits();
+    updateStepNavState(getCurrentStep());
 });

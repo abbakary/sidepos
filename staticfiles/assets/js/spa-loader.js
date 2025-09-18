@@ -1,8 +1,5 @@
-// Demo items removal helper (commented out by default)
-// (original commented-out content preserved above)
-
-// SPA nav loader: dynamically load SPA helper to keep sidebar persistent and set active state
 (function(){
+  // Dynamically load SPA navigation helper and bind sidebar links when ready
   try{
     var s = document.createElement('script');
     s.src = '/static/js/spa_nav.js';
