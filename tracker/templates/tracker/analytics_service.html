@@ -779,8 +779,8 @@ function initServiceDistributionChart() {
                             label: function(context) {
                                 const label = context.label || '';
                                 const value = context.raw || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((value / total) * 100);
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0) || 0;
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
                                 return `${label}: ${value} (${percentage}%)`;
                             }
                         }
@@ -970,8 +970,8 @@ function initTireTypesChart() {
                             label: function(context) {
                                 const label = context.label || '';
                                 const value = context.raw || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((value / total) * 100);
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0) || 0;
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
                                 return `${label}: ${value} (${percentage}%)`;
                             }
                         }
@@ -1039,8 +1039,8 @@ function initInquiryTypesChart() {
                             label: function(context) {
                                 const label = context.label || '';
                                 const value = context.raw || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((value / total) * 100);
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0) || 0;
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
                                 return `${label}: ${value} (${percentage}%)`;
                             }
                         }
@@ -1109,8 +1109,8 @@ function initServiceTypesChart() {
                             label: function(context) {
                                 const label = context.label || '';
                                 const value = context.raw || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((value / total) * 100);
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0) || 0;
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
                                 return `${label}: ${value} (${percentage}%)`;
                             }
                         }
